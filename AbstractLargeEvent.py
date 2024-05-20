@@ -43,7 +43,7 @@ class AbstractTruck:
         pass
 
 
-class Depot:
+class AbstractDepot:
     def __init__(self) -> None:
         self.location: Loc
         self.id: int
@@ -70,7 +70,7 @@ class AbstractServiceCenter:
     def serve(self):
         pass
 
-class Order:
+class AbstractOrder:
     def __init__(self) -> None:
         self.start_time: float
         self.time_window: float
@@ -78,7 +78,7 @@ class Order:
         self.volume: float # the volume of the good
 
 
-class Venue:
+class AbstractVenue:
     def __init__(self) -> None:
         self.start_time: float
         self.end_time: float
@@ -88,7 +88,7 @@ class Venue:
         self.cong_factor: float
 
 
-class LargeEventGen:
+class AbstractLargeEventGen:
     def __init__(self) -> None:
         self.venues: List[Venue]
         self.trans_mat: List[List[float]]
@@ -102,7 +102,7 @@ class LargeEventGen:
         pass
 
 
-class OrderGen:
+class AbstractOrderGen:
     def __init__(self) -> None:
         self.dest_dist: Dict[int, float]
         self.avg_interval_times: Dict[int, float]

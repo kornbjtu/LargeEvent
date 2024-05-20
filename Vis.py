@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 class Visualizor:
-    def __init__(self):
+    def __init_git config user.name_(self):
         self.canvas = np.zeros((120, 120, 3), dtype=np.uint8)
         self.fps = 24
         self.truck_color = (0, 0, 255)
@@ -29,6 +29,6 @@ class Visualizor:
 
 visualizor = Visualizor()
 visualizor.draw(10, 20)
-#visualizor.update_canvas()
+visualizor.update_canvas()
 
 

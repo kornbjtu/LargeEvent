@@ -56,9 +56,21 @@ class Depot:
         pass
 
 class ServiceCenter(AbstractServiceCenter, sim.Component):
-    
+    def __init__(self):
+        super().__init__()
+        sim.Component.__init__(self)
+        self.resource = sim.Resource(capacity=self.cap)
+
     def serve(self):
-        pass
+        while True:
+            if len(self.serve_queue) > 0:
+                order = self.serve_queue.pop()
+                yield self.request(self.resource)
+                yield self.hold(self.serve_time_dist.sample())
+                self.release(self.resource)
+            else:
+                yield self.passivate()
+
 
 class Order:
     def __init__(self) -> None:

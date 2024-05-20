@@ -29,6 +29,5 @@ class Visualizor:
 
 visualizor = Visualizor()
 visualizor.draw(10, 20)
-visualizor.update_canvas()
 
 

@@ -1,8 +1,11 @@
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Callable, Dict, List, Union
+
+from salabim.salabim import Environment
 from Graph import *
 from abc import abstractmethod, abstractstaticmethod
 import salabim as sim
+from AbstractLargeEvent import *
 
 ### DATA CLASSES ###
 
@@ -11,21 +14,9 @@ class Loc:
     x: float
     y: float
 
-class AbstractTruck:
+class Truck(AbstractTruck, sim.Component):
     def __init__(self) -> None:
-        self.location: Loc
-        self.id: int
-        self.outd_time: float # out depot time
-        self.act_time: float # active time
-        self.deli_arr_time: Dict[int, float]
-        self.ind_time: float # in depot time
-        self.depot: int # belonging to which depot
-
-        ## CONSTANTS
-        self.DIS_ENER_CON: float # distance energy consumption
-        self.TIME_ENER_CON: float # time energy consumption
-        self.NR_ORDER: int # number of order
-
+        super().__init__()
 
     @abstractmethod
     def wait_maintenance(self):
@@ -50,7 +41,7 @@ class Depot:
         self.truck_instock: int
         self.nr_inservice: int
         self.max_order: int # maximum order it can hold?
-        self.service_center: AbstractServiceCenter
+        self.service_center: ServiceCenter
 
     @abstractmethod
     def accept_order(self):
@@ -60,13 +51,12 @@ class Depot:
     def receive_truck(self):
         pass
 
-class AbstractServiceCenter:
-    def __init__(self) -> None:
-        self.cap: int #capacity
-        self.serve_time_dist: sim.Distribution
-        self.serve_queue: sim.Queue
-    
     @abstractmethod
+    def send_truck(self):
+        pass
+
+class ServiceCenter(AbstractServiceCenter, sim.Component):
+    
     def serve(self):
         pass
 

@@ -23,11 +23,14 @@ class Truck:
 # 创建两个 Loc 对象
 loc1 = Loc(x=50, y=-20)
 loc2 = Loc(x=50, y=50)
+loc3 = Loc(x=0, y=0)
 
 # 创建两个 Truck 对象并分配 Loc 对象
 truck1 = Truck(location=loc1, id=0)
 truck2 = Truck(location=loc2, id=1)
 
-# 打印 Truck 对象的位置信息以验证
-# print(truck1.location)  # 输出: Loc(x=10, y=20)
-# print(truck2.location)  # 输出: Loc(x=-15, y=-50)
+
+class Depot:
+    def __init__(self, location: Loc, id: int) -> None:
+        self.location = location
+

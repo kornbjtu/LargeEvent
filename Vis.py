@@ -44,15 +44,15 @@ class Visualizor:
         
     def animate_depots(self):
         for depot in all_depots:
-            cv2.circle(self.canvas, self.trans(depot.location.x, depot.location.y), self.depot_radius, self.depot_color, -1)
+            cv2.circle(self.canvas, self.trans(depot.node.location.x, depot.node.location.y), self.depot_radius, self.depot_color, -1)
 
     def animate_venues(self):
         for venue in all_venues:
-            cv2.circle(self.canvas, self.trans(venue.location.x, venue.location.y), self.venue_radius, self.venue_color, -1)
+            cv2.circle(self.canvas, self.trans(venue.node.location.x, venue.node.location.y), self.venue_radius, self.venue_color, -1)
 
     def animate_ordergenerators(self):
         for ordergenerator in all_ordergenerators:
-            cv2.circle(self.canvas, self.trans(ordergenerator.location.x, ordergenerator.location.y), self.ordergenerator_radius, self.ordergenerator_color, -1)
+            cv2.circle(self.canvas, self.trans(ordergenerator.node.location.x, ordergenerator.node.location.y), self.ordergenerator_radius, self.ordergenerator_color, -1)
     
     def animate_roads(self):
         

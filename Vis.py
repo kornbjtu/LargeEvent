@@ -37,13 +37,11 @@ class Visualizor:
         canvas_y = int(700-5*(y + 60))
         return canvas_x, canvas_y
         
-
     def animate_trucks(self):
         for truck in all_trucks:
             cv2.circle(self.canvas, self.trans(truck.location.x, truck.location.y), self.truck_radius, self.truck_color, -1)
             
         
-
     def animate_depots(self):
         for depot in all_depots:
             cv2.circle(self.canvas, self.trans(depot.location.x, depot.location.y), self.depot_radius, self.depot_color, -1)
@@ -55,18 +53,23 @@ class Visualizor:
     def animate_ordergenerators(self):
         for ordergenerator in all_ordergenerators:
             cv2.circle(self.canvas, self.trans(ordergenerator.location.x, ordergenerator.location.y), self.ordergenerator_radius, self.ordergenerator_color, -1)
-
+    
     def animate_roads(self):
+        
         for road in all_roads:
+            
             if road.road_type == False:
                 if road.cong == 0:
-                    #normal road and no congestion
+                # normal road and no congestion
+                    
                     cv2.line(self.canvas, self.trans(road.Node1.location.x, road.Node1.location.y), self.trans(road.Node2.location.x, road.Node2.location.y), self.road_nor_color, self.road_nor_width)
                 else:
-                    #normal road with congestion
+                    # normal road with congestion
+                    
                     cv2.line(self.canvas, self.trans(road.Node1.location.x, road.Node1.location.y), self.trans(road.Node2.location.x, road.Node2.location.y), self.road_cong_color, self.road_nor_width)
             else:
-                #highways
+                # highways
+
                 cv2.line(self.canvas, self.trans(road.Node1.location.x, road.Node1.location.y), self.trans(road.Node2.location.x, road.Node2.location.y), self.road_nor_color, self.road_high_width)
 
     def draw(self):

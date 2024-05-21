@@ -32,3 +32,4 @@ waitingline = sim.Queue("waitingline")
 env.run(till=50)
 print()
 waitingline.print_statistics()
+111111

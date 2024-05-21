@@ -9,25 +9,22 @@ class Visualizor:
         self.truck_color = ((255, 0, 255))      #truck: purple
         self.depot_color = ((0, 255, 255))      #depot: yellow
         self.venue_color = ((255, 0, 0))        #event venue: blue
-        self.ordergenerator = ((0,255,0 ))      #order generator: green
-        self.road_nor = ((255, 255, 255))       #normal road: white
-        self.road_cong = ((0, 0, 255))          #congested road: red
-        self.truck_radius = 2, 
-
+        self.ordergenerator_color = ((0,255,0 ))      #order generator: green
+        self.road_nor_color = ((255, 255, 255))       #normal road: white
+        self.road_cong_color = ((0, 0, 255))          #congested road: red
+        self.truck_radius = 3
+        self.depot_radius = 10
+        self.venue_radius = 10
+        self.ordergenerator_radius = 6
+        self.road_nor_width = 2
+        self.road_high_width = 4
 
     def update_canvas(self):
         cv2.imshow('Canvas', self.canvas)
         key = cv2.waitKey(int(1000/self.fps))
         return key  # 返回按下的键的ASCII码
     
-    def trans(self, x: int, y: int):    #coordinate transfer
-        canvas_x = int(5*(x + 60))
-        canvas_y = int(700-5*(y + 60))
-        cv2.circle(self.canvas, (canvas_x, canvas_y), self.truck_radius, self.truck_color, -1)
-
-    def animate_trucks(self):
-        for truck in all_trucks:
-            self.trans(truck.location.x, truck.location.y)
+    def end(self):
         key = self.update_canvas()
         if key != -1:  # 如果用户按下了键，跳出循环
             cv2.destroyAllWindows()
@@ -35,10 +32,51 @@ class Visualizor:
         cv2.waitKey(0)  # 动画结束后，窗口将保持打开状态，直到用户按下任意键
         cv2.destroyAllWindows()
 
+    def trans(self, x: int, y: int):    #coordinate transfer
+        canvas_x = int(5*(x + 60))
+        canvas_y = int(700-5*(y + 60))
+        return canvas_x, canvas_y
+        
 
+    def animate_trucks(self):
+        for truck in all_trucks:
+            cv2.circle(self.canvas, self.trans(truck.location.x, truck.location.y), self.truck_radius, self.truck_color, -1)
+            
+        
+
+    def animate_depots(self):
+        for depot in all_depots:
+            cv2.circle(self.canvas, self.trans(depot.location.x, depot.location.y), self.depot_radius, self.depot_color, -1)
+
+    def animate_venues(self):
+        for venue in all_venues:
+            cv2.circle(self.canvas, self.trans(venue.location.x, venue.location.y), self.venue_radius, self.venue_color, -1)
+
+    def animate_ordergenerators(self):
+        for ordergenerator in all_ordergenerators:
+            cv2.circle(self.canvas, self.trans(ordergenerator.location.x, ordergenerator.location.y), self.ordergenerator_radius, self.ordergenerator_color, -1)
+
+    def animate_roads(self):
+        for road in all_roads:
+            if road.road_type == False:
+                if road.cong == 0:
+                    #normal road and no congestion
+                    cv2.line(self.canvas, self.trans(road.Node1.location.x, road.Node1.location.y), self.trans(road.Node2.location.x, road.Node2.location.y), self.road_nor_color, self.road_nor_width)
+                else:
+                    #normal road with congestion
+                    cv2.line(self.canvas, self.trans(road.Node1.location.x, road.Node1.location.y), self.trans(road.Node2.location.x, road.Node2.location.y), self.road_cong_color, self.road_nor_width)
+            else:
+                #highways
+                cv2.line(self.canvas, self.trans(road.Node1.location.x, road.Node1.location.y), self.trans(road.Node2.location.x, road.Node2.location.y), self.road_nor_color, self.road_high_width)
 
     def draw(self):
         self.animate_trucks()
+        self.animate_depots()
+        self.animate_venues()
+        self.animate_ordergenerators()
+        self.animate_roads()
+
+        self.end()
     
    
 

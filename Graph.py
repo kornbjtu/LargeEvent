@@ -14,13 +14,11 @@ class Road():
 
 class Graph:
 
-    def __init__(self, edges, vertex):
+    def __init__(self, roads, nodes):
         """
         Args:
             edges (List<Edge>): the key of every edge is the address of the tuple.
             vertex (List<Integer>): the key of every vertice.
         """
-        self.edges = edges
-        self.vertex = vertex
-
-    
+        self.roads = roads
+        self.nodes = nodes

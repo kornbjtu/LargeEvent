@@ -85,6 +85,7 @@ class Order:
         self.time_window: float
         self.destination: int  # node is a int
         self.volume: float  # the volume of the good
+        self.depot: Depot
 
 
 class Venue:
@@ -95,6 +96,7 @@ class Venue:
         self.influence_road: List[Road]
         self.cong_level: int
         self.cong_factor: float
+        self.node: int
 
 
 class LargeEventGen:

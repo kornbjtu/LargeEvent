@@ -9,10 +9,12 @@ from AbstractLargeEvent import *
 
 ### DATA CLASSES ###
 
+
 @dataclass
 class Loc:
     x: float
     y: float
+
 
 class Truck(AbstractTruck, sim.Component):
     def __init__(self) -> None:
@@ -21,15 +23,15 @@ class Truck(AbstractTruck, sim.Component):
     @abstractmethod
     def wait_maintenance(self):
         pass
-    
+
     @abstractmethod
     def move(self, sec: float):
         pass
-    
+
     @abstractstaticmethod
-    def plan_route(from_node:int, to_node: int):
+    def plan_route(from_node: int, to_node: int):
         pass
-    
+
     def return_depot(depot: int):
         pass
 
@@ -40,7 +42,7 @@ class Depot:
         self.id: int
         self.truck_instock: int
         self.nr_inservice: int
-        self.max_order: int # maximum order it can hold?
+        self.max_order: int  # maximum order it can hold?
         self.service_center: ServiceCenter
 
     @abstractmethod
@@ -51,9 +53,14 @@ class Depot:
     def receive_truck(self):
         pass
 
-    @abstractmethod
-    def send_truck(self):
-        pass
+
+f
+
+
+@abstractmethod
+def send_truck(self):
+    pass
+
 
 class ServiceCenter(AbstractServiceCenter, sim.Component):
     def __init__(self):
@@ -76,8 +83,8 @@ class Order:
     def __init__(self) -> None:
         self.start_time: float
         self.time_window: float
-        self.destination: int # node is a int
-        self.volume: float # the volume of the good
+        self.destination: int  # node is a int
+        self.volume: float  # the volume of the good
 
 
 class Venue:
@@ -108,13 +115,9 @@ class OrderGen:
     def __init__(self) -> None:
         self.dest_dist: Dict[int, float]
         self.avg_interval_times: Dict[int, float]
-        self.depot_dist: Dict[Depot, float]
+
+    def assign_depot(self):
 
     @abstractmethod
     def generate(self):
         pass
-
-    
-
-
-    

@@ -10,8 +10,15 @@ class Visualizor:
         self.depot_color = ((0, 255, 255))      #depot: yellow
         self.venue_color = ((255, 0, 0))        #event venue: blue
         self.ordergenerator_color = ((0,255,0 ))      #order generator: green
-        self.road_nor_color = ((255, 255, 255))       #normal road: white
-        self.road_cong_color = ((0, 0, 255))          #congested road: red
+        # self.road_nor_color = ((255, 255, 255))       #normal road: white
+
+
+        self.road_color = [
+            (255, 255, 255), (204, 204, 255), (153, 153, 255), (102, 102, 255), (51, 51, 255), (0, 0, 255)
+        ]
+
+
+        # self.road_cong_color = ((0, 0, 255))          #congested road: red
         self.truck_radius = 3
         self.depot_radius = 10
         self.venue_radius = 10
@@ -62,15 +69,32 @@ class Visualizor:
                 if road.cong == 0:
                 # normal road and no congestion
                     
-                    cv2.line(self.canvas, self.trans(road.Node1.location.x, road.Node1.location.y), self.trans(road.Node2.location.x, road.Node2.location.y), self.road_nor_color, self.road_nor_width)
-                else:
-                    # normal road with congestion
+                    cv2.line(self.canvas, self.trans(road.Node1.location.x, road.Node1.location.y), self.trans(road.Node2.location.x, road.Node2.location.y), self.road_color[0], self.road_nor_width)
+                elif road.cong == 1:
+                    # normal road with congestion rank1
                     
-                    cv2.line(self.canvas, self.trans(road.Node1.location.x, road.Node1.location.y), self.trans(road.Node2.location.x, road.Node2.location.y), self.road_cong_color, self.road_nor_width)
+                    cv2.line(self.canvas, self.trans(road.Node1.location.x, road.Node1.location.y), self.trans(road.Node2.location.x, road.Node2.location.y), self.road_color[1], self.road_nor_width)
+                elif road.cong == 2:
+                    # normal road with congestion rank2
+                    
+                    cv2.line(self.canvas, self.trans(road.Node1.location.x, road.Node1.location.y), self.trans(road.Node2.location.x, road.Node2.location.y), self.road_color[2], self.road_nor_width)
+                elif road.cong == 3:
+                    # normal road with congestion rank3
+                    
+                    cv2.line(self.canvas, self.trans(road.Node1.location.x, road.Node1.location.y), self.trans(road.Node2.location.x, road.Node2.location.y), self.road_color[3], self.road_nor_width)
+                elif road.cong == 4:
+                    # normal road with congestion rank4
+                    
+                    cv2.line(self.canvas, self.trans(road.Node1.location.x, road.Node1.location.y), self.trans(road.Node2.location.x, road.Node2.location.y), self.road_color[4], self.road_nor_width)
+                elif road.cong == 5:
+                    # normal road with congestion rank5
+                    
+                    cv2.line(self.canvas, self.trans(road.Node1.location.x, road.Node1.location.y), self.trans(road.Node2.location.x, road.Node2.location.y), self.road_color[5], self.road_nor_width)
+
             else:
                 # highways
 
-                cv2.line(self.canvas, self.trans(road.Node1.location.x, road.Node1.location.y), self.trans(road.Node2.location.x, road.Node2.location.y), self.road_nor_color, self.road_high_width)
+                cv2.line(self.canvas, self.trans(road.Node1.location.x, road.Node1.location.y), self.trans(road.Node2.location.x, road.Node2.location.y), self.road_color[0], self.road_high_width)
 
     def draw(self):
         self.animate_trucks()

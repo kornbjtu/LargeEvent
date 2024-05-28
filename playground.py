@@ -86,7 +86,10 @@ class Road:
 
 
 Road1 = Road(Node1 = 1, Node2 = 2, cong=0, road_type = False)
-Road2 = Road(Node1 = 1, Node2 = 3, cong=2, road_type = False)
+Road2 = Road(Node1 = 1, Node2 = 3, cong=1, road_type = False)
 Road3 = Road(2, 3, cong=0, road_type = True)
-
+Road4 = Road(6, 10, 2, False)
+Road5 = Road(11, 18, 3, False)
+Road6 = Road(12, 33, 4, False)
+Road7 = Road(30, 5, 5, False)
 

@@ -90,7 +90,7 @@ class AbstractVenue:
 
 class AbstractLargeEventGen:
     def __init__(self) -> None:
-        self.venues: List[Venue]
+        self.venues: List[AbstractVenue]
         self.trans_mat: List[List[float]]
 
     @abstractmethod

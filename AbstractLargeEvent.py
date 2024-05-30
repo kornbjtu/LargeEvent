@@ -12,19 +12,22 @@ class Loc:
     y: float
 
 class AbstractTruck:
-    def __init__(self) -> None:
+    def __init__(self, id, order_list, act_time, depot) -> None:
+        #real-time tracking
         self.location: Loc
-        self.id: int
-        self.outd_time: float # out depot time
-        self.act_time: float # active time
+
+        # necessary attributes
+        self.id: int = id
+        self.outd_time: float = None # out depot time
+        self.act_time: float = act_time # active time
         self.deli_arr_time: Dict[int, float]
-        self.ind_time: float # in depot time
-        self.depot: int # belonging to which depot
+        self.ind_time: float = None # in depot time
+        self.depot: AbstractDepot = depot # belonging to which depot
+        self.order_list: List[AbstractOrder] = order_list
+        self.now_node: Node = depot.node
 
         ## CONSTANTS
-        self.DIS_ENER_CON: float # distance energy consumption
-        self.TIME_ENER_CON: float # time energy consumption
-        self.NR_ORDER: int # number of order
+        self.TYPE: str # the type of truck, defining the capacity
 
 
     @abstractmethod
@@ -44,13 +47,12 @@ class AbstractTruck:
 
 
 class AbstractDepot:
-    def __init__(self) -> None:
-        self.location: Loc
-        self.id: int
-        self.truck_instock: int
-        self.nr_inservice: int
-        self.max_order: int # maximum order it can hold?
-        self.service_center: AbstractServiceCenter
+    def __init__(self, id, node, truck_instock, max_order, capacity, serve_time_dist, serve_queue) -> None:
+        self.node: Node = node
+        self.id: int = id
+        self.truck_instock: List[AbstractTruck] = truck_instock
+        self.max_order: int = max_order # maximum order the driver should hold
+        self.service_center: AbstractServiceCenter(capacity, serve_time_dist, serve_queue)
 
     @abstractmethod
     def accept_order(self):
@@ -61,10 +63,10 @@ class AbstractDepot:
         pass
 
 class AbstractServiceCenter:
-    def __init__(self) -> None:
-        self.cap: int #capacity
-        self.serve_time_dist: sim.Distribution
-        self.serve_queue: sim.Queue
+    def __init__(self, capacity, serve_time_dist, serve_queue) -> None:
+        self.capacity = capacity  # 服务中心的容量
+        self.serve_time_dist = serve_time_dist  # 服务时间分布
+        self.serve_queue: sim.Queue = serve_queue  # 服务队列
     
     @abstractmethod
     def serve(self):
@@ -74,8 +76,9 @@ class AbstractOrder:
     def __init__(self) -> None:
         self.start_time: float
         self.time_window: float
-        self.destination: int # node is a int
+        self.destination_node: Node 
         self.volume: float # the volume of the good
+        self.arrival_time: float
 
 
 class AbstractVenue:

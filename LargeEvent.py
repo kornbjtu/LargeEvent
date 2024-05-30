@@ -7,6 +7,26 @@ from abc import abstractmethod, abstractstaticmethod
 import salabim as sim
 from AbstractLargeEvent import *
 
+################################## DATA CLASS ##########################################
+
+class Order:
+    def __init__(self) -> None:
+        self.start_time: float
+        self.time_window: float
+        self.destination: int  # node is a int
+        self.volume: float  # the volume of the good
+        self.depot: Depot
+
+
+class Venue:
+    def __init__(self) -> None:
+        self.start_time: float
+        self.end_time: float
+        self.influence_range_level: int
+        self.influence_road: List[Road]
+        self.cong_level: int
+        self.cong_factor: float
+        self.node: int
 
 ################################## COMPONENTS ##########################################
 
@@ -15,18 +35,17 @@ class Depot(sim.Component, AbstractDepot):
     def setup(self, id, order_list, act_time, depot) -> None:
         AbstractDepot.__init__(self, id, order_list, act_time, depot)
 
-    @abstractmethod
-    def accept_order(self):
-        pass
-
-    @abstractmethod
-    def receive_truck(self):
-        pass
-
-    @abstractmethod
     def send_truck(self):
-        pass
+        
+        sum_order_volume = sum([order.volume for order in self.order_list])
+        if sum_order_volume >= self.max_order: 
+            # then we send a truck to take the order
+            while len(self.truck_instock) == 0:
+                # if no truck in stock
+                self.wait(1)
 
+            truck_sent = self.truck_instock.pop(0)
+            truck_sent.activate(process="in_queue")
 
 class Truck(sim.Component, AbstractTruck):
     def setup(self, id, order_list, act_time, depot):
@@ -105,26 +124,6 @@ class ServiceCenter(sim.Component, AbstractServiceCenter):
             self.active_trucks.remove(self.truck)
             if len(self.serve_queue) > 0 and len(self.active_trucks) < self.capacity:
                 self.activate()
-
-
-class Order:
-    def __init__(self) -> None:
-        self.start_time: float
-        self.time_window: float
-        self.destination: int  # node is a int
-        self.volume: float  # the volume of the good
-        self.depot: Depot
-
-
-class Venue:
-    def __init__(self) -> None:
-        self.start_time: float
-        self.end_time: float
-        self.influence_range_level: int
-        self.influence_road: List[Road]
-        self.cong_level: int
-        self.cong_factor: float
-        self.node: int
 
 
 class LargeEventGen:

@@ -30,22 +30,6 @@ class AbstractTruck:
         self.TYPE: str # the type of truck, defining the capacity
 
 
-    @abstractmethod
-    def wait_maintenance(self):
-        pass
-    
-    @abstractmethod
-    def move(self, sec: float):
-        pass
-    
-    @abstractstaticmethod
-    def plan_route(from_node:int, to_node: int):
-        pass
-    
-    def return_depot(depot: int):
-        pass
-
-
 class AbstractDepot:
     def __init__(self, id, node, truck_instock, max_order, capacity, serve_time_dist, serve_queue) -> None:
         self.node: Node = node
@@ -97,11 +81,11 @@ class AbstractLargeEventGen:
         self.trans_mat: List[List[float]]
 
     @abstractmethod
-    def gen_cong_level(self, venue: Venue):
+    def gen_cong_level(self, venue: AbstractVenue):
         pass
 
     @abstractmethod
-    def gen_cong(self, venue: Venue):
+    def gen_cong(self, venue: AbstractVenue):
         pass
 
 
@@ -109,7 +93,7 @@ class AbstractOrderGen:
     def __init__(self) -> None:
         self.dest_dist: Dict[int, float]
         self.avg_interval_times: Dict[int, float]
-        self.depot_dist: Dict[Depot, float]
+        self.depot_dist: Dict[AbstractDepot, float]
 
     @abstractmethod
     def generate(self):

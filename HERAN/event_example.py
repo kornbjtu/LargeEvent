@@ -1,26 +1,9 @@
 import salabim as sim
 import random
 from typing import List, Tuple
-from abc import abstractmethod
-
-
-class Road:
-    def __init__(self, node1=None, node2=None, velocity_limit=None):
-        self.node1: Node = node1
-        self.node2: Node = node2
-        self.velocity_limit: float = velocity_limit
-        self.length: float = np.sqrt((self.node1.location.x - self.node2.location.x).pow(2) + (self.node1.location.y - self.node2.location.y).pow(2))
-    def get_weight(self):
-        return self.length / self.velocity_limit
-
-class AbstractVenue:
-    def __init__(self) -> None:
-        self.start_time: float
-        self.end_time: float
-        self.influence_range_level: int
-        self.influence_road: List[Road]
-        self.cong_level: int
-        self.cong_factor: float
+from Graph import Node, Road, Graph
+from AbstractLargeEvent import *
+from NodeData import *
 
 class Venue(AbstractVenue):
     def __init__(self, location: Tuple[float, float], event_scale: int, start_time: float, end_time: float, influence_road: List[Road]):
@@ -33,25 +16,13 @@ class Venue(AbstractVenue):
         self.cong_level = 0
         self.cong_factor = 1.0
 
-class AbstractLargeEventGen(sim.Component):
-    def setup(self, venues: List[Venue], trans_mat: List[List[float]]) -> None:
-        self.venues = venues
-        self.trans_mat = trans_mat
-
-    @abstractmethod
-    def gen_cong_level(self, venue: Venue):
-        pass
-
-    @abstractmethod
-    def gen_cong(self, venue: Venue):
-        pass
 
 class ConcreteLargeEventGen(AbstractLargeEventGen):
     def setup(self, venues: List[Venue], trans_mat: List[List[float]]):
         self.venues = venues
         self.trans_mat = trans_mat
-        self.cong_levels = [0, 1, 2, 3, 4, 5]
-        self.cong_factors = {0: 1, 1: 1.05, 2: 1.15, 3: 1.25, 4: 1.35, 5: 1.45}
+        self.cong_levels = [0, 1, 2, 3, 4]
+        self.cong_factors = {0: 1, 1: 1.05, 2: 1.15, 3: 1.25, 4: 1.35}
         self.results = []  # 保存结果的列表
 
     def gen_cong_level(self, venue: Venue) -> int:
@@ -75,7 +46,10 @@ class ConcreteLargeEventGen(AbstractLargeEventGen):
             self.hold(60)  # 每小时生成一次事件
 
 # 示例使用
-roads = [Road(1), Road(2), Road(3)]
+roads = [Road(Node(0, 0, 1), Node(10, 10, 2), 60), Road(Node(10, 10, 2), Node(20, 20, 3), 60)]
+nodes = [Node(0, 0, 1), Node(10, 10, 2), Node(20, 20, 3)]
+
+graph = Graph(roads, nodes)
 
 # 根据你提供的节点数据，定义前五个可能产生事件的节点
 venues = [
@@ -87,12 +61,11 @@ venues = [
 ]
 
 trans_mat = [
-    [0.9, 0.1, 0, 0, 0, 0],
-    [0.1, 0.8, 0.1, 0, 0, 0],
-    [0, 0.1, 0.8, 0.1, 0, 0],
-    [0, 0, 0.1, 0.8, 0.1, 0],
-    [0, 0, 0, 0.1, 0.8, 0.1],
-    [0, 0, 0, 0, 0.1, 0.9]
+    [0.9, 0.1, 0, 0, 0],
+    [0.1, 0.8, 0.1, 0, 0],
+    [0, 0.1, 0.8, 0.1, 0],
+    [0, 0, 0.1, 0.8, 0.1],
+    [0, 0, 0, 0.1, 0.9]
 ]
 
 env = sim.Environment(trace=True)

@@ -1,5 +1,10 @@
 import numpy as np
 from NodeData import *
+import pandas as pd
+import os
+script_path = os.path.dirname(os.path.abspath(__file__))
+
+
 
 
 all_trucks = []
@@ -83,6 +88,18 @@ class Road:
         all_roads.append(self)
  
     
+file_path = os.path.join(script_path, "node-matrix.xlsx")
+df = pd.read_excel(file_path, header=None)
+
+# for index, row in df.iterrows():
+#     # 从第三列开始，因为前两列是坐标
+#     for i in range(2, len(row), 2):
+#         # 检查是否有有效的地点序列
+#         if pd.notna(row[i]) and pd.notna(row[i+1]):
+#             # 根据值确定road_type
+#             road_type = False if row[i+1] == 1 else True
+#             # 创建Road对象并添加到列表
+#             all_roads.append(Road(row[i], row[i+1], 0, road_type))
 
 
 Road1 = Road(Node1 = 1, Node2 = 2, cong=0, road_type = False)
@@ -93,3 +110,10 @@ Road5 = Road(11, 18, 3, False)
 Road6 = Road(12, 33, 4, False)
 Road7 = Road(30, 5, 5, False)
 
+import os
+
+# 打印当前工作目录
+print(os.getcwd())
+
+# 打印当前工作目录下的所有文件和文件夹
+print(os.listdir(os.getcwd()))

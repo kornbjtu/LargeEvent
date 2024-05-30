@@ -10,8 +10,8 @@ class Visualizor:
         self.depot_color = ((0, 255, 255))      #depot: yellow
         self.venue_color = ((255, 0, 0))        #event venue: blue
         self.ordergenerator_color = ((0,255,0 ))      #order generator: green
-        # self.road_nor_color = ((255, 255, 255))       #normal road: white
-
+       
+        self.midpoint_color = ((255, 165, 0))
 
         self.road_color = [
             (255, 255, 255), (204, 204, 255), (153, 153, 255), (102, 102, 255), (51, 51, 255), (0, 0, 255)
@@ -25,6 +25,7 @@ class Visualizor:
         self.ordergenerator_radius = 6
         self.road_nor_width = 1
         self.road_high_width = 2
+        self.midpoint_width = 4
 
     def update_canvas(self):
         cv2.imshow('Canvas', self.canvas)
@@ -61,6 +62,10 @@ class Visualizor:
         for ordergenerator in all_ordergenerators:
             cv2.circle(self.canvas, self.trans(ordergenerator.node.location.x, ordergenerator.node.location.y), self.ordergenerator_radius, self.ordergenerator_color, -1)
     
+    def animate_midpoints(self):
+        for midpoint in all_midpoints:
+            cv2.circle(self.canvas, self.trans(midpoint.node.location.x, midpoint.node.location.y), self.midpoint_width, self.midpoint_color, -1)
+
     def animate_roads(self):
         
         for road in all_roads:
@@ -110,8 +115,8 @@ class Visualizor:
         self.animate_venues()
         self.animate_ordergenerators()
         self.animate_roads()
-        self.animate_nodes()
-
+        # self.animate_nodes()
+        self.animate_midpoints()
         self.end()
     
    

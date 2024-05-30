@@ -23,8 +23,8 @@ class Visualizor:
         self.depot_radius = 10
         self.venue_radius = 10
         self.ordergenerator_radius = 6
-        self.road_nor_width = 2
-        self.road_high_width = 4
+        self.road_nor_width = 1
+        self.road_high_width = 2
 
     def update_canvas(self):
         cv2.imshow('Canvas', self.canvas)
@@ -96,12 +96,21 @@ class Visualizor:
 
                 cv2.line(self.canvas, self.trans(road.Node1.location.x, road.Node1.location.y), self.trans(road.Node2.location.x, road.Node2.location.y), self.road_color[0], self.road_high_width)
 
+    def animate_nodes(self):
+        for node_id, node in all_nodes.items():
+            # 获取节点的坐标
+            x, y = node.location.x, node.location.y
+            # 在画布上绘制一个圆形
+            cv2.circle(self.canvas, self.trans(node.location.x, node.location.y), self.ordergenerator_radius, self.ordergenerator_color, -1)
+
+
     def draw(self):
         self.animate_trucks()
         self.animate_depots()
         self.animate_venues()
         self.animate_ordergenerators()
         self.animate_roads()
+        self.animate_nodes()
 
         self.end()
     

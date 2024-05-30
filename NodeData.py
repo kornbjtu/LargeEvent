@@ -1,5 +1,9 @@
 import numpy as np
-
+import pandas as pd
+import os
+script_path = os.path.dirname(os.path.abspath(__file__))
+file_path = os.path.join(script_path, "node_matrix.xlsx")
+df = pd.read_excel(file_path, header=None)
 
 
 
@@ -40,6 +44,18 @@ class Node:
         all_nodes[node_id] = new_node
         return new_node
 
+
+
+# 遍历DataFrame中的每一行
+# for index, row in df.iterrows():
+    # 创建Loc对象
+    # loc = Loc(row['x'], row['y'])
+    # # 创建Node对象并添加到字典
+    # node = Node(loc, index+1)
+    # all_nodes[node.id] = node
+
+
+
 loc1 = Loc(x=0, y=40)        
 loc2 = Loc(x=-10, y=10)
 loc3 = Loc(x=-40, y=-10)       
@@ -70,7 +86,7 @@ loc27 = Loc(x=-25, y=-30)
 loc28 = Loc(x=-30, y=-35)
 loc29 = Loc(x=30, y=-25)
 loc30 = Loc(x=25, y=-30)
-loc31 = Loc(x=0, y=-50)
+loc31 = Loc(x=0, y=50)
 loc32 = Loc(x=20, y=50)
 loc33 = Loc(x=5, y=40)
 

@@ -1,12 +1,17 @@
-from abc import abstractmethod
-
 import salabim as sim
 import random
 from typing import List, Tuple
+from abc import abstractmethod
+
 
 class Road:
-    def __init__(self, road_id: int):
-        self.road_id = road_id
+    def __init__(self, node1=None, node2=None, velocity_limit=None):
+        self.node1: Node = node1
+        self.node2: Node = node2
+        self.velocity_limit: float = velocity_limit
+        self.length: float = np.sqrt((self.node1.location.x - self.node2.location.x).pow(2) + (self.node1.location.y - self.node2.location.y).pow(2))
+    def get_weight(self):
+        return self.length / self.velocity_limit
 
 class AbstractVenue:
     def __init__(self) -> None:
@@ -27,8 +32,6 @@ class Venue(AbstractVenue):
         self.influence_road = influence_road
         self.cong_level = 0
         self.cong_factor = 1.0
-
-
 
 class AbstractLargeEventGen(sim.Component):
     def setup(self, venues: List[Venue], trans_mat: List[List[float]]) -> None:
@@ -73,10 +76,16 @@ class ConcreteLargeEventGen(AbstractLargeEventGen):
 
 # 示例使用
 roads = [Road(1), Road(2), Road(3)]
+
+# 根据你提供的节点数据，定义前五个可能产生事件的节点
 venues = [
-    Venue((52.3676, 4.9041), 3, start_time=0, end_time=100, influence_road=roads),
-    Venue((52.3667, 4.8945), 5, start_time=0, end_time=100, influence_road=roads)
+    Venue((0, 40), 1, start_time=0, end_time=100, influence_road=roads),
+    Venue((-10, 10), 2, start_time=0, end_time=100, influence_road=roads),
+    Venue((-40, -10), 3, start_time=0, end_time=100, influence_road=roads),
+    Venue((-30, -30), 4, start_time=0, end_time=100, influence_road=roads),
+    Venue((30, -30), 5, start_time=0, end_time=100, influence_road=roads)
 ]
+
 trans_mat = [
     [0.9, 0.1, 0, 0, 0, 0],
     [0.1, 0.8, 0.1, 0, 0, 0],

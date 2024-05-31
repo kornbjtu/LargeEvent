@@ -115,8 +115,10 @@ class Visualizor:
         self.animate_venues()
         self.animate_ordergenerators()
         self.animate_roads()
-        # self.animate_nodes()
         self.animate_midpoints()
+
+        # self.animate_nodes()
+        
         self.end()
     
    

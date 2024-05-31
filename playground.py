@@ -34,7 +34,6 @@ truck_loc2 = Loc(x=50, y=50)
 # 创建两个 Truck 对象并分配 Loc 对象
 # truck1 = Truck(location=truck_loc1)
 # truck2 = Truck(location=truck_loc2) 
-# 创建两个 Loc 对象
 
 
 class Depot:
@@ -147,10 +146,10 @@ for i in range(1, df.shape[0]):
             # 创建Road对象并添加到列表
             all_roads.append(Road(i, j-2, 0, road_type))
 
-
-for road in all_roads:
-    print("Node1: ", road.Node1.id)
-    print("Node2: ", road.Node2.id)
+# print all roads' details
+# for road in all_roads:
+#     print("Node1: ", road.Node1.id)
+#     print("Node2: ", road.Node2.id)
 
 
 

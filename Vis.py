@@ -44,12 +44,7 @@ class Visualizor:
         canvas_x = int(5*(x + 60))
         canvas_y = int(700-5*(y + 60))
         return canvas_x, canvas_y
-        
-    def animate_trucks(self):
-        for truck in all_trucks:
-            cv2.circle(self.canvas, self.trans(truck.location.x, truck.location.y), self.truck_radius, self.truck_color, -1)
-            
-        
+       
     def animate_depots(self):
         for depot in all_depots:
             cv2.circle(self.canvas, self.trans(depot.node.location.x, depot.node.location.y), self.depot_radius, self.depot_color, -1)
@@ -110,7 +105,7 @@ class Visualizor:
 
 
     def draw(self):
-        self.animate_trucks()
+     
         self.animate_depots()
         self.animate_venues()
         self.animate_ordergenerators()

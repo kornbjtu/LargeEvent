@@ -7,7 +7,6 @@ script_path = os.path.dirname(os.path.abspath(__file__))
 
 
 
-all_trucks = []
 all_depots = []
 all_venues = []
 all_ordergenerators = []
@@ -21,19 +20,6 @@ class Loc:
 
     def __str__(self):
         return f'Loc(x={self.x}, y={self.y})'
-
-class Truck:
-    def __init__(self, location: Loc) -> None:
-        
-        self.location = location
-        
-        all_trucks.append(self)
-
-truck_loc1 = Loc(x=50, y=-20)     #test for trucks
-truck_loc2 = Loc(x=50, y=50)
-# 创建两个 Truck 对象并分配 Loc 对象
-# truck1 = Truck(location=truck_loc1)
-# truck2 = Truck(location=truck_loc2) 
 
 
 class Depot:

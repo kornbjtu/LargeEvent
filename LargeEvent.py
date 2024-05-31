@@ -146,8 +146,8 @@ class OrderGen:
         self.avg_interval_times: Dict[int, float]
 
     def assign_depot(self):
+        pass
 
-    @abstractmethod
     def generate(self):
         pass
 

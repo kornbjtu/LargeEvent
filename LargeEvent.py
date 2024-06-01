@@ -6,6 +6,7 @@ from Graph import *
 from abc import abstractmethod, abstractstaticmethod
 import salabim as sim
 from AbstractLargeEvent import *
+import random
 
 ################################## DATA CLASS ##########################################
 
@@ -120,7 +121,7 @@ class ServiceCenter(sim.Component, AbstractServiceCenter):
             self.active_trucks.append(self.truck)
             service_time = self.serve_time_dist.sample()  # 使用分布生成服务时间
             self.hold(service_time)
-            self.truck.activate()
+            self.truck.activate(process="deliver")
             self.active_trucks.remove(self.truck)
             if len(self.serve_queue) > 0 and len(self.active_trucks) < self.capacity:
                 self.activate()
@@ -141,15 +142,32 @@ class LargeEventGen:
 
 
 class OrderGen:
-    def __init__(self) -> None:
-        self.dest_dist: Dict[int, float]
-        self.avg_interval_times: Dict[int, float]
+    def setup(self, dest_dist: Dict[int, float], avg_interval_times: Dict[int, float], depot_dist: Dict[Depot, float]):
+        AbstractOrderGen.__init__(self, dest_dist, avg_interval_times, depot_dist)
 
-    def assign_depot(self):
-        pass
-
-    def generate(self):
-        pass
+    def process(self):
+        while True:
+            # 选择一个目的地
+            destination = self._select_from_distribution(self.dest_dist)
+            
+            # 选择一个仓库
+            depot = self._select_from_distribution(self.depot_dist)
+            
+            # 生成订单
+            order = Order(destination, depot)
+            depot.accept_order()  # 仓库接收订单
+            
+            # 打印订单信息
+            print(f"Order generated at time {env.now()}: from Depot {depot.id} to destination {destination}")
+            
+            # 平均间隔时间
+            interval_time = self.avg_interval_times[destination]
+            self.hold(sim.Exponential(interval_time).sample())
+    
+    def _select_from_distribution(self, distribution: Dict):
+        keys, values = zip(*distribution.items())
+        selected = random.choices(keys, weights=values, k=1)[0]
+        return selected
 
 
 

@@ -50,6 +50,7 @@ class Graph:
             self.adj_list[road.node2].append((road.node1, road.get_weight()))  # Assuming undirected graph
 
     def node(self, id: int):
+        ### This method is used to unify the id input and node input ###
         if isinstance(id, Node):
             return id
         for n in self.nodes:

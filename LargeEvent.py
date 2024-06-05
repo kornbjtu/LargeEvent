@@ -30,39 +30,16 @@ class Venue:
         self.event_sacle: int
         self.node: int
 
-################################ default nodes settings ##############################
-affected_nodes_list = {
-    1: [graph.node(33), graph.node(20)],
-    2: [graph.node(22), graph.node(21)],
-    3: [graph.node(23), graph.node(24), graph.node(25), graph.node(26)],
-    4: [graph.node(27), graph.node(28)],
-    5: [graph.node(29), graph.node(30)]
-}
 
-venues = [
-    Venue(node=1, event_scale=2, affected_nodes=affected_nodes_list[1]),
-    Venue(node=2, event_scale=3, affected_nodes=affected_nodes_list[2]),
-    Venue(node=3, event_scale=1, affected_nodes=affected_nodes_list[3]),
-    Venue(node=4, event_scale=4, affected_nodes=affected_nodes_list[4]),
-    Venue(node=5, event_scale=5, affected_nodes=affected_nodes_list[5])
-]
-
-trans_mat = [
-    [0.9, 0.1, 0, 0, 0],
-    [0.1, 0.8, 0.1, 0, 0],
-    [0, 0.1, 0.8, 0.1, 0],
-    [0, 0, 0.1, 0.8, 0.1],
-    [0, 0, 0, 0.1, 0.9]
-]
 
 ################################## COMPONENTS ##########################################
 
 
 class Depot(sim.Component, AbstractDepot):
-    def setup(self, id, order_list, act_time, depot) -> None:
-        AbstractDepot.__init__(self, id, order_list, act_time, depot)
+    def setup(self, id, node, truck_instock, max_order, capacity, serve_time_dist, serve_queue) -> None:
+        AbstractDepot.__init__(self, id, node, truck_instock, max_order, capacity, serve_time_dist, serve_queue)
 
-    def send_truck(self):
+    def process(self):
         
         sum_order_volume = sum([order.volume for order in self.order_list])
         if sum_order_volume >= self.max_order: 
@@ -74,9 +51,20 @@ class Depot(sim.Component, AbstractDepot):
             truck_sent = self.truck_instock.pop(0)
             truck_sent.activate(process="in_queue")
 
+            # clear order it takes, we assume it takes the order at first come first serve principle
+            clear_order_list = []
+            total_volume = 0
+            for order in self.order_list:
+                if total_volume <= truck_sent.capacity
+
+    def accept_oder(self, order):
+
+        self.order_list.append(order)
+
+
 class Truck(sim.Component, AbstractTruck):
-    def setup(self, id, order_list, act_time, depot):
-        AbstractTruck.__init__(self, id, order_list, act_time, depot)
+    def setup(self, id, order_list, act_time, depot, depot_list):
+        AbstractTruck.__init__(self, id, order_list, act_time, depot, depot_list)
 
     def in_queue(self):
         self.depot.service_center.serve_queue.add(self)
@@ -97,10 +85,10 @@ class Truck(sim.Component, AbstractTruck):
 
         # heuristic decision-making is used here, go to the depot with least truck in stock
     
-        instock_depots = [depot.truck_instock for depot in depot_list]
+        instock_depots = [depot.truck_instock for depot in self.depot_list]
         depot_ind = np.argmin(instock_depots)
 
-        return depot_list[depot_ind]
+        return self.depot_list[depot_ind]
 
     def deliver(self):
         self.depot = None # detach the depot it belongs
@@ -135,8 +123,8 @@ class Truck(sim.Component, AbstractTruck):
         self.passivate()
 
 class ServiceCenter(sim.Component, AbstractServiceCenter):
-    def setup(self, capacity, serve_time_dist, serve_queue):
-        AbstractServiceCenter.__init__(self, capacity, serve_time_dist, serve_queue)
+    def setup(self, capacity, serve_time_dist, serve_queue, depot):
+        AbstractServiceCenter.__init__(self, capacity, serve_time_dist, serve_queue, depot)
         self.active_trucks = []  # 当前正在服务的卡车列表
 
     def process(self):
@@ -207,7 +195,7 @@ class OrderGen(sim.Component):
             
             # 生成订单
             order = Order(destination, depot)
-            depot.accept_order()  # 仓库接收订单
+            depot.accept_order(order)  # 仓库接收订单
             
             # 打印订单信息
             print(f"Order generated at time {self.env.now}: from Depot {depot.id} to destination {destination}")
@@ -225,17 +213,53 @@ class OrderGen(sim.Component):
 
 
 
+################################ SETTINGS ##############################
+AFFECT_NODE = {
+    1: [Node(33), Node(20)],
+    2: [Node(22), Node(21)],
+    3: [Node(23), Node(24), Node(25), Node(26)],
+    4: [Node(27), Node(28)],
+    5: [Node(29), Node(30)]
+}
+
+VENUES = [
+    Venue(node=1, event_scale=2, affected_nodes=AFFECT_NODE[1]),
+    Venue(node=2, event_scale=3, affected_nodes=AFFECT_NODE[2]),
+    Venue(node=3, event_scale=1, affected_nodes=AFFECT_NODE[3]),
+    Venue(node=4, event_scale=4, affected_nodes=AFFECT_NODE[4]),
+    Venue(node=5, event_scale=5, affected_nodes=AFFECT_NODE[5])
+]
+
+TRANS_MAT = [
+    [0.9, 0.1, 0, 0, 0],
+    [0.1, 0.8, 0.1, 0, 0],
+    [0, 0.1, 0.8, 0.1, 0],
+    [0, 0, 0.1, 0.8, 0.1],
+    [0, 0, 0, 0.1, 0.9]
+]
+
+DEPOT_LIST: List[Node] = [Node(17), Node(18), Node(19), Node(16)]
+
+##################################################
+##              MAIN LINE                       ##
+##################################################
+
 
 env = sim.Environment(trace=True)
 
 
 ################ INITIALIZATION #################
 
+# 1. Graph generation
 data_file = "node_matrix.xlsx"
 
 map: Graph = init_graph(data_file)
-depot_list: List[Depot] = []
 
+
+# 2. Generators Initiation
+
+for ind in range(len(DEPOT_LIST)):
+    Depot(id=ind, order_list, act_time, depot)
 
 
 

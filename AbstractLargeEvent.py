@@ -12,7 +12,7 @@ class Loc:
     y: float
 
 class AbstractTruck:
-    def __init__(self, id, order_list, act_time, depot) -> None:
+    def __init__(self, id, order_list, act_time, depot, depot_list) -> None:
         #real-time tracking
         self.location: Loc
 
@@ -25,6 +25,7 @@ class AbstractTruck:
         self.depot: AbstractDepot = depot # belonging to which depot
         self.order_list: List[AbstractOrder] = order_list
         self.now_node: Node = depot.node
+        self.depot_list: List[AbstractDepot] = depot_list
 
         ## CONSTANTS
         self.TYPE: str # the type of truck, defining the capacity
@@ -47,10 +48,11 @@ class AbstractDepot:
         pass
 
 class AbstractServiceCenter:
-    def __init__(self, capacity, serve_time_dist, serve_queue) -> None:
+    def __init__(self, capacity, serve_time_dist, serve_queue, depot) -> None:
         self.capacity = capacity  # 服务中心的容量
         self.serve_time_dist = serve_time_dist  # 服务时间分布
         self.serve_queue: sim.Queue = serve_queue  # 服务队列
+        self.depot = depot
     
     @abstractmethod
     def serve(self):

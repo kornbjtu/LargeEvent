@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
+import threading
 from playground import *
 
 class Visualizor:
@@ -26,6 +28,9 @@ class Visualizor:
         self.road_nor_width = 1
         self.road_high_width = 2
         self.midpoint_width = 4
+
+
+        self.table_data = [["1", "2"], ["3", "4"]]  # 这是一个示例数据，你可以根据需要修改
 
     def update_canvas(self):
         cv2.imshow('Canvas', self.canvas)
@@ -103,8 +108,26 @@ class Visualizor:
             # 在画布上绘制一个圆形
             cv2.circle(self.canvas, self.trans(node.location.x, node.location.y), self.ordergenerator_radius, self.ordergenerator_color, -1)
 
+    def draw_table_and_graph(self):
+        # 创建一个新的figure
+        fig, axs = plt.subplots(2)
 
-    def draw(self):
+        # 在第一个子图中绘制表格
+        axs[0].axis('off')
+        table = axs[0].table(cellText=self.table_data, loc='center', cellLoc='center')
+        table.scale(1, 4)
+
+        # 在第二个子图中绘制图像
+        x = np.linspace(0, 2 * np.pi, 100)
+        y = np.sin(x)
+        axs[1].plot(x, y)
+        axs[1].set_title('y = sin(x)')
+
+        # 显示图表
+        plt.show()
+
+
+    def draw_canvas(self):
      
         self.animate_depots()
         self.animate_venues()
@@ -113,11 +136,21 @@ class Visualizor:
         self.animate_midpoints()
 
         # self.animate_nodes()
-        
+                
         self.end()
-    
+        
+    def draw(self):
+        thread = threading.Thread(target=self.draw_canvas)
+
+        # 启动线程
+        thread.start()
+
+        # 在主线程中绘制表格和图像
+        self.draw_table_and_graph()
+        
    
 
 
 vis = Visualizor()
+
 vis.draw()

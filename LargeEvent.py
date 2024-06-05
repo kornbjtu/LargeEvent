@@ -30,6 +30,9 @@ class Venue:
         self.event_sacle: int
         self.node: int
 
+
+
+
 ################################ default nodes settings ##############################
 affected_nodes_list = {
     1: [graph.node(33), graph.node(20)],
@@ -54,6 +57,14 @@ trans_mat = [
     [0, 0, 0.1, 0.8, 0.1],
     [0, 0, 0, 0.1, 0.9]
 ]
+########################## Defualt parameter settings ###################################
+cong_levels = [0, 1, 2, 3, 4, 5]
+cong_factors ={0: 1, 1: 1.05, 2: 1.15, 3: 1.25, 4: 1.35, 5: 1.45}
+dest_dist = 
+avg_interval_times =
+depot_dist =
+event_gen = 
+env = 
 
 ################################## COMPONENTS ##########################################
 
@@ -157,8 +168,8 @@ class LargeEventGen(sim.Component):
     def setup(self, venues: List[Venue], trans_mat: List[List[float]], env):
         self.venues = venues
         self.trans_mat = trans_mat
-        self.cong_levels = [0, 1, 2, 3, 4, 5]
-        self.cong_factors = {0: 1, 1: 1.05, 2: 1.15, 3: 1.25, 4: 1.35, 5: 1.45}
+        self.cong_levels = cong_levels
+        self.cong_factors = cong_factors
         self.results = []  # 保存结果的列表
         self.env = env
 

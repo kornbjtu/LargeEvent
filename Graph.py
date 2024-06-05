@@ -9,9 +9,11 @@ class Node:
     x: float
     y: float
     id: int
+    property: int
 
     def __str__(self):
-        return "id: %d, location: x=%.2f, y=%.2f"%(self.id, self.x, self.y)
+        return "id: %d, location: x=%.2f, y=%.2f, property: %d" % (self.id, self.x, self.y, self.property)
+        # return "id: %d, location: x=%.2f, y=%.2f"%(self.id, self.x, self.y)
     
     def __hash__(self):
         return self.id
@@ -20,6 +22,7 @@ class Node:
         return self.id < other.id  # This is a simple comparison method for the Node class
     
     
+        
 
 class Road:
 
@@ -128,8 +131,8 @@ def init_graph(file_path: str):
     
     ####################### Get Nodes ############################
     for index, row in df.iloc[1:].iterrows():
-
-        node = Node(x=row[0], y=row[1], id=index)
+        # node = Node(x=row[0], y=row[1], id=index)     
+        node = Node(x=row[0], y=row[1], id=index, property=row['Property'])
         all_nodes[index] = node
 
 

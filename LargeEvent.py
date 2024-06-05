@@ -230,5 +230,14 @@ env = sim.Environment(trace=True)
 
 
 ################ INITIALIZATION #################
-map: Graph = Graph()
+
+data_file = "node_matrix.xlsx"
+
+map: Graph = init_graph(data_file)
 depot_list: List[Depot] = []
+
+
+
+
+###### place order generators on each node #######
+

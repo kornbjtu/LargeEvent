@@ -12,17 +12,16 @@ import random
 
 class Order:
     def __init__(self) -> None:
-        self.start_time: float
-        self.time_window: float
+        self.generation_time: float  # generation time
         self.destination: int  # node is a int
         self.volume: float  # the volume of the good
-        self.depot: Depot
+        self.depot: Depot   # From which depot
 
 
 class Venue:
     def __init__(self) -> None:
-        self.start_time: float
-        self.end_time: float
+        self.start_time: float  # event generation time
+        self.duration: float    # sample from distribution
         self.influence_range_level: int
         self.influence_road: List[Road]
         self.cong_level: int
@@ -54,11 +53,17 @@ class Depot(sim.Component, AbstractDepot):
             clear_order_list = []
             total_volume = 0
             for order in self.order_list:
-                if total_volume <= truck_sent.capacity
+                if total_volume <= 
 
     def accept_oder(self, order):
 
         self.order_list.append(order)
+
+    def __get_time_wait(self):
+        
+        now = env.now()
+        first_order_arrival_time = self.order_list[0].generation_time
+
 
 
 class Truck(sim.Component, AbstractTruck):

@@ -7,6 +7,7 @@ from abc import abstractmethod, abstractstaticmethod
 import salabim as sim
 from AbstractLargeEvent import *
 import random
+from Vis import *
 
 ################################## DATA CLASS ##########################################
 
@@ -28,7 +29,6 @@ class Order:
     destination: Node  # node is a int
     volume: float  # the volume of the good
     depot: AbstractDepot  # From which depot
-
 
 
 ################################## COMPONENTS ##########################################
@@ -170,6 +170,11 @@ class Truck(sim.Component, AbstractTruck):
         # self.depot.truck_instock.append(self)
         self.passivate()
 
+
+    ######### Truck data ########
+    def get_truck_pos(self):
+        return self.id
+
 class ServiceCenter(sim.Component, AbstractServiceCenter):
     def setup(self, capacity, serve_time_dist, serve_queue, depot):
         AbstractServiceCenter.__init__(self, capacity, serve_time_dist, serve_queue, depot)
@@ -251,6 +256,7 @@ class OrderGen(sim.Component):
             # 订单间隔时间
 
             self.hold(GAP_DIST.sample())
+
     def adjust_dest_distribution(self, dest_dist: Dict[int, float], event_gen: LargeEventGen):
         adjusted_dest_dist = dest_dist.copy()
         current_time = env.now()  # 获取当前时间
@@ -273,6 +279,28 @@ class OrderGen(sim.Component):
         keys, values = zip(*distribution.items())
         selected = random.choices(keys, weights=values, k=1)[0]
         return selected
+    
+
+############################### VISUALIZATION COMPONENTS ##################
+#
+#       This part, even if a salabim component, is a visualizor which
+#       get data from the system components and visualize the process
+#       THIS IS NOT A PART OF SIMULATION SYSTEM.
+#
+###########################################################################
+
+class Visual(sim.Component):
+
+    def setup(self, vis):
+        self.vis: Plotter = vis
+
+    def process(self):
+        while True:
+            self.vis.draw()
+
+            # it always runs at the first priority in each event time.
+            self.hold(1)
+
 
 
 ################################ SETTINGS ##############################
@@ -381,6 +409,17 @@ if __name__ == '__main__':
 
     SIM_TIME = 43200
 
+
+
+
+    #################### METRICS SETTINGS #######################
+
+
+
+
+
+
+
     ##################################################
     ##              MAIN LINE                       ##
     ##################################################
@@ -397,6 +436,7 @@ if __name__ == '__main__':
 
     truck_list = []
     depot_list = []
+    complete_order_list = []
 
 
     # dictionary of depot_id to depot
@@ -428,11 +468,15 @@ if __name__ == '__main__':
 
     OrderGen(event_gen=event_gen)
 
+    Visual(vis=Plotter(sim_time=SIM_TIME, truck_list=truck_list, depot_list=depot_list, venue_list=VENUES, map=map))
+
 
     env.run(till=SIM_TIME)
     
     #################### 3 STATISTICS ###################
     print()
-    for d in depot_list:
-        d.service_center.serve_queue.print_statistics()
+    # for d in depot_list:
+    #     d.service_center.serve_queue.print_statistics()
+    print(truck_list[4].get_truck_pos())
+    
         

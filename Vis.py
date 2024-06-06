@@ -3,9 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import threading
 from playground import *
+from LargeEvent import *
+from Graph import *
 
-class Visualizor:
-    def __init__(self):
+class Plotter:
+    def __init__(self, sim_time, truck_list, depot_list, venue_list, map):
         self.canvas = np.zeros((700, 700, 3), dtype=np.uint8)
         self.fps = 24
         self.truck_color = ((255, 0, 255))      #truck: purple
@@ -31,6 +33,16 @@ class Visualizor:
 
 
         self.table_data = [["1", "2"], ["3", "4"]]  # 这是一个示例数据，你可以根据需要修改
+
+
+        ###########################################################################################
+        self.truck_list: List[Truck] = truck_list
+        self.depot_list: List[Depot] = depot_list
+        self.venue_list: List[Venue] = venue_list
+        self.map: Graph = map
+
+
+        ###########################################################################################
 
     def update_canvas(self):
         cv2.imshow('Canvas', self.canvas)
@@ -141,7 +153,7 @@ class Visualizor:
         
     def draw(self):
         thread = threading.Thread(target=self.draw_canvas)
-
+    
         # 启动线程
         thread.start()
 
@@ -150,7 +162,3 @@ class Visualizor:
         
    
 
-
-vis = Visualizor()
-
-vis.draw()

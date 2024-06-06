@@ -32,12 +32,18 @@ class AbstractTruck:
 
 
 class AbstractDepot:
-    def __init__(self, id, node, truck_instock, max_order, capacity, serve_time_dist, serve_queue) -> None:
+    def __init__(self, id, node, max_order, capacity, serve_time_dist, serve_queue, max_wait_time, order_list, truck_list) -> None:
         self.node: Node = node
+        self.order_list: List[AbstractOrder] = order_list
         self.id: int = id
-        self.truck_instock: List[AbstractTruck] = truck_instock
         self.max_order: int = max_order # maximum order the driver should hold
-        self.service_center: AbstractServiceCenter(capacity, serve_time_dist, serve_queue)
+        self.service_center: AbstractServiceCenter
+        self.max_wait_time: float = max_wait_time
+        self.truck_list: List[AbstractTruck] = truck_list # all trucks 
+
+    @abstractmethod
+    def get_truck_instock(self) -> List[AbstractTruck]:
+        pass
 
     @abstractmethod
     def accept_order(self):
@@ -49,7 +55,7 @@ class AbstractDepot:
 
 class AbstractServiceCenter:
     def __init__(self, capacity, serve_time_dist, serve_queue, depot) -> None:
-        self.capacity = capacity  # 服务中心的容量
+        # self.capacity = capacity  # 服务中心的容量
         self.serve_time_dist = serve_time_dist  # 服务时间分布
         self.serve_queue: sim.Queue = serve_queue  # 服务队列
         self.depot = depot
@@ -58,23 +64,23 @@ class AbstractServiceCenter:
     def serve(self):
         pass
 
-class AbstractOrder:
-    def __init__(self) -> None:
-        self.start_time: float
-        self.time_window: float
-        self.destination_node: Node 
-        self.volume: float # the volume of the good
-        self.arrival_time: float
-
-
+@dataclass
 class AbstractVenue:
-    def __init__(self) -> None:
-        self.start_time: float
-        self.end_time: float
-        self.influence_range_level: int
-        self.influence_road: List[Road]
-        self.cong_level: int
-        self.cong_factor: float
+    start_time: float  # event generation time
+    duration: sim.Distribution   # sample from distribution############################
+    influence_road: List[Road]
+    event_scale: int
+    node: Node
+    affected_node : List[Node]
+    cong_level : float = 0
+    cong_factor : float = 0
+
+@dataclass
+class AbstractOrder:
+    generation_time: float  # generation time
+    destination: Node  # node is a int
+    volume: float  # the volume of the good
+    depot: AbstractDepot  # From which depot
 
 
 class AbstractLargeEventGen:

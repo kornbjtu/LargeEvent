@@ -9,10 +9,10 @@ class Node:
     x: float
     y: float
     id: int
-    property: int
+    property: str
 
     def __str__(self):
-        return "id: %d, location: x=%.2f, y=%.2f, property: %d" % (self.id, self.x, self.y, self.property)
+        return "id: %d, location: x=%.2f, y=%.2f, property: %s" % (self.id, self.x, self.y, self.property)
         # return "id: %d, location: x=%.2f, y=%.2f"%(self.id, self.x, self.y)
     
     def __hash__(self):
@@ -31,10 +31,14 @@ class Road:
         self.node2: Node = node2
         self.velocity_limit: float = velocity_limit
         self.cong = 0 # we assume there's no congestion in the road initially
-        self.length: float = np.sqrt(np.power((self.node1.x - self.node2.x), 2) + np.power((self.node1.y - self.node2.y), 2))
+        self.length: float = np.sqrt(np.power((self.node1.x - self.node2.x), 2) + np.power((self.node1.y - self.node2.y), 2)) * 0.1 # km
     
+    def get_nodes(self):
+        return set([self.node1, self.node2])
+
     def get_weight(self):
-        return self.length / self.velocity_limit
+        time_hour = self.length / self.velocity_limit * np.maximum(self.cong,1) 
+        return time_hour * 60 * 60
 
 
 class Graph:
@@ -60,6 +64,17 @@ class Graph:
             if id == n.id:
                 return n
         raise "Node not found!" # node id Not found
+    
+    def get_road(self, node1: Node, node2: Node):
+        node1 = self.node(node1)
+        node2 = self.node(node2)
+
+        for road in self.roads:
+            if road.get_nodes() == set([node1, node2]):
+                return road
+        
+        raise "None Connection Found"
+
     
     def distance(self, node1: Node, node2: Node):
         node1 = self.node(node1)
@@ -120,9 +135,14 @@ class Graph:
         path.insert(0, start)
 
         return path, distances[end]
+    
+    def get_type_nodes(self, property: str):
+        
+        return [node for node in self.nodes if node.property == property]
+                
 
 
-def init_graph(file_path: str):
+def init_graph(file_path: str, road_type_to_sl):
 
     df = pd.read_excel(file_path, header=None)
     all_nodes = {}
@@ -132,16 +152,15 @@ def init_graph(file_path: str):
     ####################### Get Nodes ############################
     for index, row in df.iloc[1:].iterrows():
         # node = Node(x=row[0], y=row[1], id=index)     
-        node = Node(x=row[0], y=row[1], id=index, property=row['Property'])
+        node = Node(x=row[0], y=row[1], id=index, property=row[36])
         all_nodes[index] = node
 
 
     ####################### Get Roads ###############################
 
-    road_type_to_sl = {True: 70, False: 30} # True: the express way, False: Normal In-city way
 
     for i in range(1, df.shape[0]):
-        for j in range(3, df.shape[1]):
+        for j in range(3, df.shape[1] - 1):
 
             if pd.notna(df.iloc[i, j]):
                 if df.iloc[i, j] == 1:

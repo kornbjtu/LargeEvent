@@ -2,12 +2,12 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import threading
-from playground import *
+# from playground import *
 from LargeEvent import *
 from Graph import *
 
 class Plotter:
-    def __init__(self, sim_time, truck_list, depot_list, venue_list, map):
+    def __init__(self):
         self.canvas = np.zeros((700, 700, 3), dtype=np.uint8)
         self.fps = 24
         self.truck_color = ((255, 0, 255))      #truck: purple
@@ -36,9 +36,9 @@ class Plotter:
 
 
         ###########################################################################################
-        self.truck_list: List[Truck] = truck_list
-        self.depot_list: List[Depot] = depot_list
-        self.venue_list: List[Venue] = venue_list
+        self.all_trucks: List[Truck] = truck_list
+        self.all_depots: List[Depot] = depot_list
+        self.all_venues = VENUES
         self.map: Graph = map
 
 
@@ -62,21 +62,21 @@ class Plotter:
         canvas_y = int(700-5*(y + 60))
         return canvas_x, canvas_y
        
-    def animate_depots(self):
+    def animate_depots(self, all_depots):
         for depot in all_depots:
-            cv2.circle(self.canvas, self.trans(depot.node.location.x, depot.node.location.y), self.depot_radius, self.depot_color, -1)
+            cv2.circle(self.canvas, self.trans(depot.node.x, depot.node.y), self.depot_radius, self.depot_color, -1)
 
     def animate_venues(self):
         for venue in all_venues:
-            cv2.circle(self.canvas, self.trans(venue.node.location.x, venue.node.location.y), self.venue_radius, self.venue_color, -1)
+            cv2.circle(self.canvas, self.trans(venue.node.x, venue.node.y), self.venue_radius, self.venue_color, -1)
 
     def animate_ordergenerators(self):
         for ordergenerator in all_ordergenerators:
-            cv2.circle(self.canvas, self.trans(ordergenerator.node.location.x, ordergenerator.node.location.y), self.ordergenerator_radius, self.ordergenerator_color, -1)
+            cv2.circle(self.canvas, self.trans(ordergenerator.node.x, ordergenerator.node.y), self.ordergenerator_radius, self.ordergenerator_color, -1)
     
     def animate_midpoints(self):
         for midpoint in all_midpoints:
-            cv2.circle(self.canvas, self.trans(midpoint.node.location.x, midpoint.node.location.y), self.midpoint_width, self.midpoint_color, -1)
+            cv2.circle(self.canvas, self.trans(midpoint.node.x, midpoint.node.y), self.midpoint_width, self.midpoint_color, -1)
 
     def animate_roads(self):
         
@@ -161,4 +161,5 @@ class Plotter:
         self.draw_table_and_graph()
         
    
-
+vis = Plotter()
+vis.draw_canvas()

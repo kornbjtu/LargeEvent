@@ -7,12 +7,12 @@ from LargeEvent import *
 from Graph import *
 
 class Plotter:
-    def __init__(self):
+    def __init__(self, sim_time, truck_list, depot_list, venue_list, map):
         self.canvas = np.zeros((700, 700, 3), dtype=np.uint8)
         self.fps = 24
         self.truck_color = ((255, 0, 255))      #truck: purple
         self.depot_color = ((0, 255, 255))      #depot: yellow
-        self.venue_color = ((255, 0, 0))        #event venue: blue
+        # self.venue_color = ((255, 0, 0))        #event venue: blue
         self.ordergenerator_color = ((0,255,0 ))      #order generator: green
        
         self.midpoint_color = ((255, 165, 0))
@@ -21,8 +21,10 @@ class Plotter:
             (255, 255, 255), (204, 204, 255), (153, 153, 255), (102, 102, 255), (51, 51, 255), (0, 0, 255)
         ]
 
-
-        # self.road_cong_color = ((0, 0, 255))          #congested road: red
+        self.venue_color = [
+            (213, 255, 255), (170, 255, 255), (128, 255, 255), (85, 255, 255), (43, 255, 255), (0, 255, 255)
+        ]
+       
         self.truck_radius = 3
         self.depot_radius = 10
         self.venue_radius = 10
@@ -62,13 +64,29 @@ class Plotter:
         canvas_y = int(700-5*(y + 60))
         return canvas_x, canvas_y
        
-    def animate_depots(self, all_depots):
-        for depot in all_depots:
+    def animate_depots(self):
+        for depot in self.all_depots:
             cv2.circle(self.canvas, self.trans(depot.node.x, depot.node.y), self.depot_radius, self.depot_color, -1)
 
+    def animate_trucks(self):
+        for truck in self.all_trucks:
+            cv2.circle(self.canvas, self.trans(truck.node.x, truck.node.y), self.truck_radius, self.truck_color, -1)
+
+
     def animate_venues(self):
-        for venue in all_venues:
-            cv2.circle(self.canvas, self.trans(venue.node.x, venue.node.y), self.venue_radius, self.venue_color, -1)
+        for venue in self.all_venues:
+            if venue.cong_level==0:
+                cv2.circle(self.canvas, self.trans(venue.node.x, venue.node.y), self.venue_radius, self.venue_color[0], -1)
+            elif venue.cong_level==1:
+                cv2.circle(self.canvas, self.trans(venue.node.x, venue.node.y), self.venue_radius, self.venue_color[1], -1)
+            elif venue.cong_level==2:
+                cv2.circle(self.canvas, self.trans(venue.node.x, venue.node.y), self.venue_radius, self.venue_color[2], -1)
+            elif venue.cong_level==3:
+                cv2.circle(self.canvas, self.trans(venue.node.x, venue.node.y), self.venue_radius, self.venue_color[3], -1)
+            elif venue.cong_level==4:
+                cv2.circle(self.canvas, self.trans(venue.node.x, venue.node.y), self.venue_radius, self.venue_color[4], -1)
+            else:
+                print('venues_color error!!!')
 
     def animate_ordergenerators(self):
         for ordergenerator in all_ordergenerators:
@@ -80,7 +98,7 @@ class Plotter:
 
     def animate_roads(self):
         
-        for road in all_roads:
+        for road in map.roads:
             
             if road.road_type == False:
                 if road.cong == 0:
@@ -107,6 +125,8 @@ class Plotter:
                     # normal road with congestion rank5
                     
                     cv2.line(self.canvas, self.trans(road.Node1.location.x, road.Node1.location.y), self.trans(road.Node2.location.x, road.Node2.location.y), self.road_color[5], self.road_nor_width)
+                else:
+                    print('Road_color error!!!')
 
             else:
                 # highways

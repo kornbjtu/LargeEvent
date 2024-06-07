@@ -5,10 +5,10 @@ class DynamicPlot:
         self.get_time = get_time
         self.get_variables = get_variables
         self.sim_time = sim_time
-        self.table_data = [["Total Consumption", "0"],
-                           ["Standby Consumtion", "0"],
-                           ["Average Waiting Time", "0"],
-                           ["Total Mileage", "0"]]
+        self.table_data = [["Variable 1", "0"],
+                           ["Variable 2", "0"],
+                           ["Variable 3", "0"],
+                           ["Variable 4", "0"]]
 
     def draw_table_and_graph(self):
         plt.ion()
@@ -26,21 +26,16 @@ class DynamicPlot:
             for j in range(2):
                 ax = axs[i + 1, j]
                 ax.set_xlim(0, self.sim_time)
+                ax.set_ylim(0, 1)
                 ax.set_title(f'Variable {2 * i + j + 1}')
                 line, = ax.plot([], [], 'r-')
                 lines.append(line)
 
-
-                # 设置 x 坐标为 self.get_time
-                x_data = [self.get_time()]  # 初始 x 坐标
-                y_data = [0]  # 初始 y 坐标
-                line.set_xdata(x_data)
-                line.set_ydata(y_data)
         # 显示图表
         plt.show()
 
         while self.get_time() < self.sim_time:
-            plt.pause(1)
+            plt.pause(0.1)
 
             # 更新表格数据
             variables = self.get_variables()
@@ -55,11 +50,8 @@ class DynamicPlot:
                 y_data.append(variables[i])
                 line.set_xdata(x_data)
                 line.set_ydata(y_data)
-
-                # 自动调整图表的显示范围
-                ax = axs[i // 2 + 1, i % 2]
-                ax.relim()
-                ax.autoscale_view()
+                axs[i // 2 + 1, i % 2].relim()
+                axs[i // 2 + 1, i % 2].autoscale_view()
 
             # 更新表格显示
             for i in range(2):
@@ -70,8 +62,3 @@ class DynamicPlot:
 
         plt.ioff()
         plt.show()
-
-if __name__ == "__main__":
-    # 示例用法
-    def get_time():
-        return 0.1  #

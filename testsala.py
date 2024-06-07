@@ -8,11 +8,8 @@ SIM_TIME = 100
 # 创建模拟环境
 env = sim.Environment()
 
-# 模拟过程中变量的类
-class LargeEvent(sim.Component):
-    def process(self):
-        while True:
-            yield self.hold(sim.Uniform(1, 5).sample())
+# 添加 sim.yieldless(False)
+sim.yieldless(False)
 
 # 初始化变量
 variables = [0, 0, 0, 0]
@@ -27,6 +24,16 @@ def get_variables():
     # 模拟随时间变化的变量
     variables = [random.random() for _ in range(4)]
     return variables
+
+# 定义一个不使用 yield 的类
+class LargeEvent(sim.Component):
+    def setup(self):
+        self.hold_time = sim.Uniform(1, 5).sample()
+
+    def process(self):
+        while True:
+            self.hold_time = sim.Uniform(1, 5).sample()
+            env.run(till=env.now() + self.hold_time)
 
 # 主程序
 def main():

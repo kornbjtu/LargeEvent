@@ -1,6 +1,4 @@
 import matplotlib.pyplot as plt
-import numpy as np
-import time
 
 class DynamicPlot:
     def __init__(self, get_time, get_variables, sim_time):

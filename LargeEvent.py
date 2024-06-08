@@ -458,7 +458,7 @@ if __name__ == '__main__':
     ##              MAIN LINE                       ##
     ##################################################
 
-    env = sim.Environment(trace=True)
+    env = sim.Environment()
 
     ################ INITIALIZATION #################
 

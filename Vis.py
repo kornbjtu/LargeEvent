@@ -7,7 +7,7 @@ import time
 class Plotter:
     def __init__(self, sim_time, truck_list, depot_list, venue_list, map):
         self.canvas = np.zeros((700, 700, 3), dtype=np.uint8)
-        self.fps = 24
+        self.fps = 120
         self.truck_color = ((255, 0, 255))      #truck: purple
         self.depot_color = ((0, 255, 255))      #depot: yellow
         # self.venue_color = ((255, 0, 0))        #event venue: blue
@@ -18,7 +18,7 @@ class Plotter:
             (255, 255, 255), (204, 204, 255), (153, 153, 255), (102, 102, 255), (51, 51, 255), (0, 0, 255)
         ]
         self.venue_color = [
-            (213, 255, 255), (170, 255, 255), (128, 255, 255), (85, 255, 255), (43, 255, 255), (255, 0, 0)
+            (255, 213, 213), (255, 170, 170), (255, 128, 128), (255,85, 85), (255, 43, 43), (255, 0, 0)
         ]
         self.font = cv2.FONT_HERSHEY_SIMPLEX
         self.truck_radius = 3
@@ -36,25 +36,22 @@ class Plotter:
         self.all_depots: List[Depot] = depot_list
         self.all_venues: List[Venue] = venue_list
         self.map: Graph = map
+        self.meantime = env.now()
+
         self.all_ordergenerators = []
-        self.all_ordergenerators.extend(self.map.get_type_nodes('Affected_node'))
+        self.all_ordergenerators.extend(self.map.get_type_nodes('Affectted_node'))
         self.all_ordergenerators.extend(self.map.get_type_nodes('Order_dest'))
 
         ###########################################################################################
+    def _clear_canvas(self):
+        self.canvas = np.zeros((700, 700, 3), dtype="uint8")
+
 
     def update_canvas(self):
         cv2.imshow('Canvas', self.canvas)
         self.end()
         time.sleep(1 / self.fps)
        
-    # def end(self):
-    #     key = self.update_canvas()
-    #     if key != -1:  # 如果用户按下了键，跳出循环
-    #         cv2.destroyAllWindows()
-    #     self.canvas.fill(0)  # 清空画布以便于下一帧
-    #     cv2.waitKey(0)  # 动画结束后，窗口将保持打开状态，直到用户按下任意键
-    #     cv2.destroyAllWindows()
-
     
     def end(self):
         k = cv2.waitKey(1)
@@ -77,6 +74,10 @@ class Plotter:
         canvas_x = int(5*(x + 60))
         canvas_y = int(700-5*(y + 60))
         return canvas_x, canvas_y
+
+
+    def animate_mtime(self):
+        cv2.putText(self.canvas, str(self.meantime), (10, 10), self.font, 0.5, (255, 255, 255), 1)
 
     def animate_depots(self):
         for depot in self.all_depots:
@@ -162,7 +163,7 @@ class Plotter:
     #         cv2.circle(self.canvas, self.trans(node.location.x, node.location.y), self.ordergenerator_radius, self.ordergenerator_color, -1)
     
     def draw_canvas(self):
-     
+        self._clear_canvas()
         self.animate_depots()
         self.animate_venues()
         self.animate_ordergenerators()

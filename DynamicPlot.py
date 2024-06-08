@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 class DynamicPlot:
-    def __init__(self, get_time, get_variables, sim_time):
+    def __init__(self,  get_variables, sim_time):
         self.get_time = get_time
         self.get_variables = get_variables
         self.sim_time = sim_time
@@ -10,7 +10,7 @@ class DynamicPlot:
                            ["Average Waiting Time", "0"],
                            ["Total Mileage", "0"]]
 
-    def draw_table_and_graph(self):
+    def draw_table_and_graph(self, now):
         plt.ion()
         fig, axs = plt.subplots(3, 2, figsize=(10, 8))
 
@@ -32,14 +32,14 @@ class DynamicPlot:
 
 
                 # 设置 x 坐标为 self.get_time
-                x_data = [self.get_time()]  # 初始 x 坐标
+                x_data = [now]  # 初始 x 坐标
                 y_data = [0]  # 初始 y 坐标
                 line.set_xdata(x_data)
                 line.set_ydata(y_data)
         # 显示图表
         plt.show()
 
-        while self.get_time() < self.sim_time:
+        while now < self.sim_time:
             plt.pause(1)
 
             # 更新表格数据

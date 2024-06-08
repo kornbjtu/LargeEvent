@@ -48,7 +48,7 @@ def main():
     dynamic_plot = DynamicPlot(get_time, get_variables, SIM_TIME)
 
     # 开始绘图
-    dynamic_plot.draw_table_and_graph()
+    dynamic_plot.draw_table_and_graph(env.now())
 
     # 等待用户按下键盘任意键退出
     input("Press any key to exit...")

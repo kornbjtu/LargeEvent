@@ -28,13 +28,14 @@ class Node:
 
 class Road:
 
-    def __init__(self, node1=None, node2=None, velocity_limit=None):
+    def __init__(self, node1=None, node2=None, velocity_limit=None, road_type=None):
         self.node1: Node = node1
         self.node2: Node = node2
         self.velocity_limit: float = velocity_limit
         self.cong = 0  # we assume there's no congestion in the road initially
         self.length: float = np.sqrt(np.power(
             (self.node1.x - self.node2.x), 2) + np.power((self.node1.y - self.node2.y), 2)) * 0.1  # km
+        self.road_type: bool = road_type
 
     def get_nodes(self):
         return set([self.node1, self.node2])
@@ -188,7 +189,7 @@ def init_graph(file_path: str, road_type_to_sl):
                     continue
 
                 all_roads.append(
-                    Road(all_nodes[i], all_nodes[j-2], road_type_to_sl[road_type]))
+                    Road(all_nodes[i], all_nodes[j-2], road_type_to_sl[road_type], road_type=road_type))
 
     ####################### Create Graph ###############################
 

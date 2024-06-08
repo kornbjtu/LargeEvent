@@ -345,7 +345,7 @@ class Visual(sim.Component):
 
     def process(self):
         while True:
-            self.vis.draw()
+            self.vis.draw_canvas()
 
             # it always runs at the first priority in each event time.
             self.hold(1)
@@ -458,7 +458,7 @@ if __name__ == '__main__':
     ##              MAIN LINE                       ##
     ##################################################
 
-    env = sim.Environment()
+    env = sim.Environment(trace=True)
 
     ################ INITIALIZATION #################
 

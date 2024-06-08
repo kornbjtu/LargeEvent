@@ -1,10 +1,10 @@
 import cv2
 import numpy as np
-# from LargeEvent import *
-# from Graph import *
+from LargeEvent import *
+from Graph import *
 
 class Plotter:
-    def __init__(self, sim_time, truck_list, depot_list, venue_list, map, ordergen_list):
+    def __init__(self, sim_time, truck_list, depot_list, venue_list, map):
         self.canvas = np.zeros((700, 700, 3), dtype=np.uint8)
         self.fps = 24
         self.truck_color = ((255, 0, 255))      #truck: purple
@@ -32,16 +32,14 @@ class Plotter:
         self.rect_width, self.rect_height = 1, 2  # 长方形的尺寸
         self.gap = 0.5  # 长方形之间的间隔
 
-
-        self.table_data = [["1", "2"], ["3", "4"]]  # 这是一个示例数据，你可以根据需要修改
-
-
         ###########################################################################################
         self.all_trucks: List[Truck] = truck_list
         self.all_depots: List[Depot] = depot_list
-        self.all_venues = List[Venue] = venue_list
+        self.all_venues: List[Venue] = venue_list
         self.map: Graph = map
-        self.all_ordergenerators.extend(self.map.get_type_nodes('Affected_node', 'Order_dest'))
+        self.all_ordergenerators = []
+        self.all_ordergenerators.extend(self.map.get_type_nodes('Affected_node'))
+        self.all_ordergenerators.extend(self.map.get_type_nodes('Order_dest'))
 
         ###########################################################################################
 
@@ -65,7 +63,7 @@ class Plotter:
        
     def animate_depots(self):
         for depot in self.all_depots:
-            for i in range(depot.service_center.serve_queue.length):
+            for i in range(depot.service_center.serve_queue.length()):
                 # 计算每个长方形的位置
                 position_x = depot.node.x-5 + (self.rect_width + self.gap) * i
                 # 绘制长方形
@@ -83,20 +81,25 @@ class Plotter:
             
             if venue.cong_level==0:
                 cv2.circle(self.canvas, self.trans(venue.node.x, venue.node.y), self.venue_radius, self.venue_color[0], -1)
+                cv2.putText(self.canvas, '0', self.trans(venue.node.x-5, venue.node.y-5), self.font, 0.5, (255, 255, 255), 1)
             elif venue.cong_level==1:
                 cv2.circle(self.canvas, self.trans(venue.node.x, venue.node.y), self.venue_radius, self.venue_color[1], -1)
+                cv2.putText(self.canvas, '1', self.trans(venue.node.x-5, venue.node.y-5), self.font, 0.5, (255, 255, 255), 1)
             elif venue.cong_level==2:
                 cv2.circle(self.canvas, self.trans(venue.node.x, venue.node.y), self.venue_radius, self.venue_color[2], -1)
+                cv2.putText(self.canvas, '2', self.trans(venue.node.x-5, venue.node.y-5), self.font, 0.5, (255, 255, 255), 1)
             elif venue.cong_level==3:
                 cv2.circle(self.canvas, self.trans(venue.node.x, venue.node.y), self.venue_radius, self.venue_color[3], -1)
+                cv2.putText(self.canvas, '3', self.trans(venue.node.x-5, venue.node.y-5), self.font, 0.5, (255, 255, 255), 1)
             elif venue.cong_level==4:
                 cv2.circle(self.canvas, self.trans(venue.node.x, venue.node.y), self.venue_radius, self.venue_color[4], -1)
+                cv2.putText(self.canvas, '4', self.trans(venue.node.x-5, venue.node.y-5), self.font, 0.5, (255, 255, 255), 1)
             else:
                 print('venues_color error!!!')
 
     def animate_ordergenerators(self):
-        for ordergenerator in all_ordergenerators:
-            cv2.circle(self.canvas, self.trans(ordergenerator.node.x, ordergenerator.node.y), self.ordergenerator_radius, self.ordergenerator_color, -1)
+        for ordergenerator in self.all_ordergenerators:
+            cv2.circle(self.canvas, self.trans(ordergenerator.x, ordergenerator.y), self.ordergenerator_radius, self.ordergenerator_color, -1)
     
     # def animate_midpoints(self):
     #     for midpoint in all_midpoints:
@@ -160,15 +163,7 @@ class Plotter:
         
     
         
-   
-vis = Plotter()
-vis.draw_canvas()
 
 
 
 
-# font = cv2.FONT_HERSHEY_SIMPLEX
-# cv2.putText(road_network, "1", (100, 280), font, 0.5, (255, 255, 255), 2)
-# cv2.putText(road_network, "2", (700, 280), font, 0.5, (255, 255, 255), 2)
-# cv2.putText(road_network, "A", (400, 320), font, 0.5, (0, 0, 255), 2)
-# cv2.putText(road_network, "B", (400, 420), font, 0.5, (0, 0, 255), 2)

@@ -6,29 +6,32 @@ import salabim as sim
 
 ### DATA CLASSES ###
 
+
 @dataclass
 class Loc:
     x: float
     y: float
 
+
 class AbstractTruck:
     def __init__(self, id, order_list, act_time, depot, depot_list) -> None:
-        #real-time tracking
+        # real-time tracking
         self.location: Loc
 
         # necessary attributes
         self.id: int = id
-        self.outd_time: float = None # out depot time
-        self.act_time: float = act_time # active time
+        self.outd_time: float = None  # out depot time
+        self.act_time: float = act_time  # active time
         self.deli_arr_time: Dict[int, float]
-        self.ind_time: float = None # in depot time
-        self.depot: AbstractDepot = depot # belonging to which depot
+        self.ind_time: float = None  # in depot time
+        self.depot: AbstractDepot = depot  # belonging to which depot
+        self.ser_cen: AbstractDepot = None  # belonging to which service center
         self.order_list: List[AbstractOrder] = order_list
         self.now_node: Node = depot.node
         self.depot_list: List[AbstractDepot] = depot_list
 
-        ## CONSTANTS
-        self.TYPE: str # the type of truck, defining the capacity
+        # CONSTANTS
+        self.TYPE: str  # the type of truck, defining the capacity
 
 
 class AbstractDepot:
@@ -36,10 +39,10 @@ class AbstractDepot:
         self.node: Node = node
         self.order_list: List[AbstractOrder] = order_list
         self.id: int = id
-        self.max_order: int = max_order # maximum order the driver should hold
+        self.max_order: int = max_order  # maximum order the driver should hold
         self.service_center: AbstractServiceCenter
         self.max_wait_time: float = max_wait_time
-        self.truck_list: List[AbstractTruck] = truck_list # all trucks 
+        self.truck_list: List[AbstractTruck] = truck_list  # all trucks
 
     @abstractmethod
     def get_truck_instock(self) -> List[AbstractTruck]:
@@ -53,16 +56,18 @@ class AbstractDepot:
     def receive_truck(self):
         pass
 
+
 class AbstractServiceCenter:
     def __init__(self, capacity, serve_time_dist, serve_queue, depot) -> None:
         # self.capacity = capacity  # 服务中心的容量
         self.serve_time_dist = serve_time_dist  # 服务时间分布
         self.serve_queue: sim.Queue = serve_queue  # 服务队列
         self.depot = depot
-    
+
     @abstractmethod
     def serve(self):
         pass
+
 
 @dataclass
 class AbstractVenue:
@@ -71,9 +76,10 @@ class AbstractVenue:
     influence_road: List[Road]
     event_scale: int
     node: Node
-    affected_node : List[Node]
-    cong_level : float = 0
-    cong_factor : float = 0
+    affected_node: List[Node]
+    cong_level: float = 0
+    cong_factor: float = 0
+
 
 @dataclass
 class AbstractOrder:
@@ -106,8 +112,3 @@ class AbstractOrderGen:
     @abstractmethod
     def generate(self):
         pass
-
-    
-
-
-    

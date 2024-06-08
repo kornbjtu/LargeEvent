@@ -1,15 +1,17 @@
 import matplotlib.pyplot as plt
 
 class DynamicPlot:
-    def __init__(self,  get_variables, sim_time):
-        self.get_time = get_time
-        self.get_variables = get_variables
+    def __init__(self,  truck_list, complete_order_list, sim_time, consumption):
+
         self.sim_time = sim_time
         self.table_data = [["Total Consumption", "0"],
                            ["Standby Consumtion", "0"],
                            ["Average Waiting Time", "0"],
                            ["Total Mileage", "0"]]
-
+        self.truck_list = truck_list
+        self.order_list = complete_order_list
+        self.consumption = consumption
+        
     def draw_table_and_graph(self, now):
         plt.ion()
         fig, axs = plt.subplots(3, 2, figsize=(10, 8))

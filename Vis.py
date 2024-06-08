@@ -42,7 +42,7 @@ class Plotter:
 
         self.all_ordergenerators = []
         self.all_ordergenerators.extend(
-            self.map.get_type_nodes('Affected_node'))
+            self.map.get_type_nodes('Affectted_node'))
         self.all_ordergenerators.extend(self.map.get_type_nodes('Order_dest'))
 
         ###########################################################################################
@@ -82,6 +82,12 @@ class Plotter:
     def animate_depots(self):
         for depot in self.all_depots:
             for i in range(depot.service_center.serve_queue.length()):
+                # 计算每个长方形的位置
+                position_x = depot.node.x-5 + (self.rect_width + self.gap) * i
+                # 绘制长方形
+                cv2.rectangle(self.canvas, self.trans(position_x, depot.node.y-5), self.trans(
+                    position_x + self.rect_width, depot.node.y-5 + self.rect_height), (255, 255, 255), -1)
+            for j in range(depot.service_center.serve_queue.length()):
                 # 计算每个长方形的位置
                 position_x = depot.node.x-5 + (self.rect_width + self.gap) * i
                 # 绘制长方形

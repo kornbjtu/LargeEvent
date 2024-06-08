@@ -6,7 +6,7 @@ from LargeEvent import *
 
 
 class Plotter:
-    def __init__(self, sim_time, truck_list, depot_list, venue_list, map):
+    def __init__(self, truck_list, depot_list, venue_list, map):
         self.canvas = np.zeros((700, 700, 3), dtype=np.uint8)
         self.fps = 120
         self.truck_color = ((255, 0, 255))  # truck: purple
@@ -41,8 +41,7 @@ class Plotter:
         self.map: Graph = map
 
         self.all_ordergenerators = []
-        self.all_ordergenerators.extend(
-            self.map.get_type_nodes('Affectted_node'))
+        self.all_ordergenerators.extend(self.map.get_type_nodes('Affectted_node'))
         self.all_ordergenerators.extend(self.map.get_type_nodes('Order_dest'))
 
         ###########################################################################################

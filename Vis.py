@@ -39,7 +39,7 @@ class Plotter:
         ###########################################################################################
         self.all_trucks: List[Truck] = truck_list
         self.all_depots: List[Depot] = depot_list
-        self.all_venues = VENUES
+        self.all_venues = List[Venue] = venue_list
         self.map: Graph = map
         self.all_ordergenerators.extend(self.map.get_type_nodes('Affected_node', 'Order_dest'))
 
@@ -74,7 +74,8 @@ class Plotter:
 
     def animate_trucks(self):
         for truck in self.all_trucks:
-            cv2.circle(self.canvas, self.trans(truck.node.x, truck.node.y), self.truck_radius, self.truck_color, -1)
+            x_position, y_position = truck.get_truck_pos()
+            cv2.circle(self.canvas, self.trans(x_position, y_position), self.truck_radius, self.truck_color, -1)
 
 
     def animate_venues(self):

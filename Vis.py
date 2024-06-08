@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
-from LargeEvent import *
 from Graph import *
 import time
+from LargeEvent import *
 
 class Plotter:
     def __init__(self, sim_time, truck_list, depot_list, venue_list, map):
@@ -36,7 +36,6 @@ class Plotter:
         self.all_depots: List[Depot] = depot_list
         self.all_venues: List[Venue] = venue_list
         self.map: Graph = map
-        self.meantime = env.now()
 
         self.all_ordergenerators = []
         self.all_ordergenerators.extend(self.map.get_type_nodes('Affectted_node'))
@@ -76,8 +75,8 @@ class Plotter:
         return canvas_x, canvas_y
 
 
-    def animate_mtime(self):
-        cv2.putText(self.canvas, str(self.meantime), (10, 10), self.font, 0.5, (255, 255, 255), 1)
+    def animate_mtime(self, now):
+        cv2.putText(self.canvas, str(int(now)), self.trans(-60, 60), self.font, 0.7, (255, 255, 255), 1)
 
     def animate_depots(self):
         for depot in self.all_depots:
@@ -162,8 +161,9 @@ class Plotter:
     #         # 在画布上绘制一个圆形
     #         cv2.circle(self.canvas, self.trans(node.location.x, node.location.y), self.ordergenerator_radius, self.ordergenerator_color, -1)
     
-    def draw_canvas(self):
+    def draw_canvas(self, now):
         self._clear_canvas()
+        self.animate_mtime(now)
         self.animate_depots()
         self.animate_venues()
         self.animate_ordergenerators()

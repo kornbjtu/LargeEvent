@@ -112,7 +112,7 @@ class Truck(sim.Component, AbstractTruck):
 
     def in_queue(self):
         self.depot.service_center.serve_queue.add(self)
-        self.serv_cent = self.depot
+        self.serve_center = self.depot.service_center
         self.depot = None
         self.passivate()
 
@@ -145,7 +145,7 @@ class Truck(sim.Component, AbstractTruck):
 
     def deliver(self):
         self.depot = None  # detach the depot it belongs
-        self.ser_cen = None  # detach the service center it belongs
+        self.serve_center = None  # detach the service center it belongs
         self.outd_time = env.now()
 
         ### start delivery ###
@@ -195,8 +195,10 @@ class Truck(sim.Component, AbstractTruck):
         self.departure_time = departure_time
 
     def get_truck_pos(self):
-        if self.depot or self.ser_cen:  # in depot
+        if self.depot:  # in depot
             return (self.depot.node.x, self.depot.node.y)
+        elif self.serve_center:
+            return (self.serve_center.depot.node.x, self.serve_center.depot.node.y)
         else:  # out in delivery
 
             assert self.path != None and self.travel_time != None and self.departure_time != None
@@ -212,10 +214,10 @@ class Truck(sim.Component, AbstractTruck):
             for ind in range(len(cumsum_time)):
                 if cumsum_time[ind] > env.now():
                     road_ind = ind
-
                     from_node_time = self.departure_time if ind == 0 else cumsum_time[ind - 1]
+                    break
 
-            on_road: Road = road_dict.keys()[road_ind]
+            on_road: Road = list(road_dict.keys())[road_ind]
             from_node: Node = road_dict[on_road]
             spent_time_on_road = env.now() - from_node_time
 
@@ -348,7 +350,7 @@ class Visual(sim.Component):
             self.vis.draw_canvas(env.now())
 
             # it always runs at the first priority in each event time.
-            self.hold(1)
+            self.hold(duration=1, priority=1)
 
 
 ################################ SETTINGS ##############################

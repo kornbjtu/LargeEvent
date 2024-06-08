@@ -25,7 +25,8 @@ class AbstractTruck:
         self.deli_arr_time: Dict[int, float]
         self.ind_time: float = None  # in depot time
         self.depot: AbstractDepot = depot  # belonging to which depot
-        self.ser_cen: AbstractDepot = None  # belonging to which service center
+        # belonging to which service center
+        self.serve_center: AbstractServiceCenter = None
         self.order_list: List[AbstractOrder] = order_list
         self.now_node: Node = depot.node
         self.depot_list: List[AbstractDepot] = depot_list
@@ -60,9 +61,9 @@ class AbstractDepot:
 class AbstractServiceCenter:
     def __init__(self, capacity, serve_time_dist, serve_queue, depot) -> None:
         # self.capacity = capacity  # 服务中心的容量
-        self.serve_time_dist = serve_time_dist  # 服务时间分布
+        self.serve_time_dist: sim.Distribution = serve_time_dist  # 服务时间分布
         self.serve_queue: sim.Queue = serve_queue  # 服务队列
-        self.depot = depot
+        self.depot: AbstractDepot = depot
 
     @abstractmethod
     def serve(self):

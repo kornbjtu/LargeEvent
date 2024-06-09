@@ -228,7 +228,7 @@ class Truck(sim.Component, AbstractTruck):
             return on_road.get_pos(spent_time_on_road, from_node)
         
     def get_mile(self):
-
+        pass
 
 
 class ServiceCenter(sim.Component, AbstractServiceCenter):

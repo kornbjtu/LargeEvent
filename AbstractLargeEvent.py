@@ -88,6 +88,7 @@ class AbstractOrder:
     destination: Node  # node is a int
     volume: float  # the volume of the good
     depot: AbstractDepot  # From which depot
+    is_complete: bool # is completed or not
 
 
 class AbstractLargeEventGen:

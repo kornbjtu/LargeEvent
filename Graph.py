@@ -23,7 +23,7 @@ class Node:
         return self.id < other.id  # This is a simple comparison method for the Node class
 
     def get_loc(self):
-        return (self.x, self.y)
+        return self.x, self.y
 
 
 class Road:
@@ -55,6 +55,8 @@ class Road:
 
     def get_pos(self, time: float, from_node: Node):
 
+        time = time / 60 / 60 # convert to hour
+
         assert from_node == self.node1 or from_node == self.node2
         to_node = self.get_another_node(from_node)
 
@@ -63,8 +65,8 @@ class Road:
         from_x, from_y = from_node.get_loc()
         to_x, to_y = to_node.get_loc()
 
-        return (distance_elapse / self.length * from_x + (self.length - distance_elapse) / self.length * to_x,
-                distance_elapse / self.length * from_y + (self.length - distance_elapse) / self.length * to_y)
+        return (distance_elapse / self.length * to_x + (self.length - distance_elapse) / self.length * from_x,
+                distance_elapse / self.length * to_y + (self.length - distance_elapse) / self.length * from_y)
 
 
 class Graph:

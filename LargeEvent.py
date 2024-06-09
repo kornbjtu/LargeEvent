@@ -30,6 +30,7 @@ class Order:
     destination: Node  # node is a int
     volume: float  # the volume of the good
     depot: AbstractDepot  # From which depot
+    is_complete: bool # is completed or not
 
 
 ################################## COMPONENTS ##########################################
@@ -72,7 +73,7 @@ class Depot(sim.Component, AbstractDepot):
                 # clear the list
 
                 self.order_list = [
-                    item for item in self.order_list if item in clear_order_list]
+                    item for item in self.order_list if item not in clear_order_list]
 
                 # send truck
 
@@ -160,7 +161,7 @@ class Truck(sim.Component, AbstractTruck):
 
             ### order complete ###
             self.order_list.remove(order_en_route)
-            complete_order_list.append(order_en_route)
+            order_en_route.is_complete = True
             order_en_route.arrival_time = env.now()
             self.now_node = order_en_route.destination
 
@@ -225,6 +226,9 @@ class Truck(sim.Component, AbstractTruck):
 
             # track accurate position on road
             return on_road.get_pos(spent_time_on_road, from_node)
+        
+    def get_mile(self):
+
 
 
 class ServiceCenter(sim.Component, AbstractServiceCenter):
@@ -302,7 +306,9 @@ class OrderGen(sim.Component):
             volume = self.volume_dist.sample()
 
             # 生成订单
-            order = Order(generation_time, destination, volume, depot)
+            order = Order(generation_time, destination, volume, depot, is_complete=False)
+            order_list.append(order)
+
             depot.accept_order(order)  # 仓库接收订单
 
             # 订单间隔时间
@@ -380,7 +386,7 @@ if __name__ == '__main__':
     ORDER_DES_LIST = map.get_type_nodes("Order_dest")
 
     ##################### DISTRIBUTION ###################
-    SERVE_TIME_DIS = sim.Uniform(m2s(30), m2s(40))
+    SERVE_TIME_DIS = sim.Uniform(m2s(1), m2s(2))
 
     GAP_DIST = sim.Uniform(m2s(0.5), m2s(1))  # 订单生成时间的分布
 
@@ -452,9 +458,15 @@ if __name__ == '__main__':
 
     #################### SIMULATION SETTINGS ###################
 
-    SIM_TIME = 43200
+    SIM_TIME = 43200 # seconds
 
     #################### METRICS SETTINGS #######################
+
+
+
+
+
+
 
     ##################################################
     ##              MAIN LINE                       ##
@@ -466,11 +478,11 @@ if __name__ == '__main__':
 
     # 1. Generators Initiation
 
-    # Truck initialization
+    # Information Initialization
 
     truck_list = []
     depot_list = []
-    complete_order_list = []
+    order_list = []
 
     # dictionary of depot_id to depot
 
@@ -499,12 +511,13 @@ if __name__ == '__main__':
 
     OrderGen(event_gen=event_gen)
 
-    Visual(vis=Plotter(sim_time=SIM_TIME, truck_list=truck_list,
+    Visual(vis=Plotter(truck_list=truck_list,
            depot_list=depot_list, venue_list=VENUES, map=map))
 
     env.run(till=SIM_TIME)
 
     #################### 3 STATISTICS ###################
+
     print()
     # for d in depot_list:
     #     d.service_center.serve_queue.print_statistics()

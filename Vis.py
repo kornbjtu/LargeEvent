@@ -24,7 +24,7 @@ class Plotter:
                                                128), (255, 85, 85), (255, 43, 43), (255, 0, 0)
         ]
         self.font = cv2.FONT_HERSHEY_SIMPLEX
-        self.truck_radius = 3
+        self.truck_radius = 5
         self.depot_radius = 10
         self.venue_radius = 10
         self.ordergenerator_radius = 6

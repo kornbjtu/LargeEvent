@@ -27,10 +27,12 @@ class Venue:
 @dataclass
 class Order:
     generation_time: float  # generation time
+    complete_time: float|None # complete time, when order is delivered.
     destination: Node  # node is a int
     volume: float  # the volume of the good
     depot: AbstractDepot  # From which depot
     is_complete: bool # is completed or not
+    
 
 
 ################################## COMPONENTS ##########################################
@@ -162,7 +164,7 @@ class Truck(sim.Component, AbstractTruck):
             ### order complete ###
             self.order_list.remove(order_en_route)
             order_en_route.is_complete = True
-            order_en_route.arrival_time = env.now()
+            order_en_route.complete_time = env.now()
             self.now_node = order_en_route.destination
 
         ### delivery complete ###
@@ -306,7 +308,7 @@ class OrderGen(sim.Component):
             volume = self.volume_dist.sample()
 
             # 生成订单
-            order = Order(generation_time, destination, volume, depot, is_complete=False)
+            order = Order(generation_time=generation_time, complete_time=None, destination=destination, volume=volume, depot=depot, is_complete=False)
             order_list.append(order)
 
             depot.accept_order(order)  # 仓库接收订单
@@ -338,13 +340,14 @@ class OrderGen(sim.Component):
         return selected
 
 
-############################### VISUALIZATION COMPONENTS ##################
-#
-#       This part, even if a salabim component, is a visualizor which
-#       get data from the system components and visualize the process
-#       THIS IS NOT A PART OF SIMULATION SYSTEM.
-#
-###########################################################################
+############################### VISUALIZATION COMPONENTS ####################
+#                                                                           #
+#       This part, even if as a salabim component, is a visualizor which    #
+#       gets data from the system components and visualize the process      #
+#                                                                           #
+#                   THIS IS NOT A PART OF SIMULATION SYSTEM.                #
+#                                                                           #
+#############################################################################
 
 class Visual(sim.Component):
 

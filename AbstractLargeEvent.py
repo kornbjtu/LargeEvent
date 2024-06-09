@@ -85,6 +85,7 @@ class AbstractVenue:
 @dataclass
 class AbstractOrder:
     generation_time: float  # generation time
+    complete_time: float|None 
     destination: Node  # node is a int
     volume: float  # the volume of the good
     depot: AbstractDepot  # From which depot

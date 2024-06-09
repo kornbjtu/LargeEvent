@@ -515,7 +515,7 @@ if __name__ == '__main__':
     OrderGen(event_gen=event_gen)
 
     Visual(vis=Plotter(truck_list=truck_list,
-           depot_list=depot_list, venue_list=VENUES, map=map))
+           depot_list=depot_list, venue_list=VENUES, map=map, order_list=order_list))
 
     env.run(till=SIM_TIME)
 

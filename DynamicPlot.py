@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from LargeEvent import *
 
 class DynamicPlot:
-    def __init__(self, truck_list, complete_order_list, sim_time, consumption):
+    def __init__(self, truck_list, order_list, complete_truck_list, sim_time, consumption):
 
         self.sim_time = sim_time
         self.table_data = [["Total Consumption", "0"],
@@ -12,25 +12,82 @@ class DynamicPlot:
                            ["Meantime", "0"]]
                            
         self.truck_list: List[Truck] = truck_list
-        self.order_list: List[Order] = complete_order_list
+        self.order_list: List[Order] = order_list
         self.truck_list: List[Truck] = truck_list
+        self.complete_truck_list = complete_truck_list
         self.time_cons, self.disp_cons = consumption
-        self.total_cons = 0.0
-        self.standby_cons = 0.0
-        self.walking_cons = 0.0
-        self.wfridge_cons = 0.0
-        self.waiting_time = 0.0
-        self.mileage = 0.0
-        self.variables = [self.total_cons, self.standby_cons, self.waiting_time, self.mileage, 0.0]
 
         self.fps = 24
 ##############计算函数
-    def get_variables(self, now):
-        self.variables[4] = int(now)
-        
-        for truck in self.truck_list:
-            self.standby_cons = 
+    def get_history(self):#计算已经完成的车辆的时间能耗
+        history_con = 0.0
+        for i in range(len(self.complete_truck_list)):
+            active_time = self.complete_truck_list[i]['active_time']
+            inpot_time = self.complete_truck_list[i]['inpot_time']
+            history_con += self.time_cons * (inpot_time-active_time)
+        return history_con
 
+    def get_ing_cons(self, now):#计算正在进行中的时间能耗
+        ing_cons = 0.0
+        for truck in self.truck_list:
+            
+            if truck.condition == 1 or truck.condition == 2:
+                ing_cons+=(now-truck.active_time) * self.time_cons
+        return ing_cons
+    
+    def get_dis_cons(self): #计算距离能耗
+        dis_cons = 0.0
+        for truck in self.truck_list:
+            mile = truck.get_mile()
+            dis_cons += self.disp_cons * mile
+        return dis_cons
+    
+    def get_standby_cons(self, now):#计算总闲置能耗
+        standby_cons = 0.0
+        for i in range(len(self.complete_truck_list)):
+            active_time = self.complete_truck_list[i]['active_time']
+            outpot_time = self.complete_truck_list[i]['outpot_time']
+            standby_cons += self.time_cons * (outpot_time - active_time)
+        for truck in self.truck_list:
+            if truck.condition == 1:
+                standby_cons += self.time_cons * (now-active_time)
+            elif truck.condition == 1:
+                standby_cons += self.time_cons * (outpot_time-active_time)
+        return standby_cons
+    
+    def get_ave_waiting_time(self):#计算已经完成的订单的平均等待的时间
+        waiting_time = 0.0
+        num = 0
+        for order in self.order_list:
+            if order.is_complete == True:
+                waiting_time += order.complete_time - order.generation_time
+                num+=1
+        ave_waiting_time = waiting_time/num
+        return ave_waiting_time
+
+    def get_mile(self):#计算总里程
+        mile = 0.0
+        for truck in self.truck_list:
+            mile += truck.get_mile()
+        return mile
+
+    def get_variables(self, now):
+
+        history_cons = self.get_history()
+        ing_cons = self.get_ing_cons(now)
+        dis_cons = self.get_dis_cons()
+        standby_cons = self.get_standby_cons(now)
+        ave_waiting_time = self.get_ave_waiting_time()
+        mile = self.get_mile()
+        total_cons = history_cons + ing_cons + dis_cons
+        standby_cons = standby_cons
+        waiting_time = ave_waiting_time
+        mileage = mile
+        variables = [total_cons, standby_cons, waiting_time, mileage, int(now)]
+        return variables
+
+
+        
 ################
     def draw_graph(self, now):
         plt.ion()
@@ -42,7 +99,7 @@ class DynamicPlot:
             table = axs[0, i].table(cellText=self.table_data, loc='center', cellLoc='center')
             table.scale(1, 2)
 
-        # 设置图表在弹窗中的位置
+        # 设置图在弹窗中的位置
         lines = []
         colors = ['r-', 'y-', 'b-', 'g-']
         for i in range(2):
@@ -66,7 +123,7 @@ class DynamicPlot:
             plt.pause(1/self.fps)
 
             # 更新表格数据
-            variables = self.get_variables()
+            variables = self.get_variables(now)
             for i in range(4):
                 self.table_data[i][1] = f"{variables[i]:.2f}"
 
@@ -74,8 +131,7 @@ class DynamicPlot:
             for i, line in enumerate(lines):
                 x_data = list(line.get_xdata())
                 y_data = list(line.get_ydata())
-#这里有get_time()
-                x_data.append(self.get_time())
+                x_data.append(variables[4])
                 y_data.append(variables[i])
                 line.set_xdata(x_data)
                 line.set_ydata(y_data)

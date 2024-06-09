@@ -13,10 +13,10 @@ class Plotter:
         self.depot_color = ((0, 255, 255))  # depot: yellow
         # self.venue_color = ((255, 0, 0))        #event venue: blue
         self.ordergenerator_color = ((0, 255, 0))  # order generator: green
-        self.generate_order_color = ((255, 0, 0))
-        self.arrival_order_color = ((0, 120, 0))
+        self.generate_order_color = ((153, 255, 153))
+        self.complete_order_color = ((0, 120, 0))
 
-        self.midpoint_color = ((255, 165, 0))
+
         self.road_color = [
             (255, 255, 255), (204, 204, 255), (153, 153,
                                                255), (102, 102, 255), (51, 51, 255), (0, 0, 255)
@@ -46,8 +46,14 @@ class Plotter:
         self.all_ordergenerators = []
         self.all_ordergenerators.extend(self.map.get_type_nodes('Affectted_node'))
         self.all_ordergenerators.extend(self.map.get_type_nodes('Order_dest'))
-        self.ordergenerator_states = {}  # 用于存储每个 ordergenerator 的颜色和重置时间
-
+        self.ordergenerator_states = {}
+        for ordergenerator in self.all_ordergenerators:
+            if ordergenerator.id not in self.ordergenerator_states:
+                self.ordergenerator_states[ordergenerator.id] = {
+                    'color': self.ordergenerator_color,
+                    'reset_time': None,
+                    'display_text': False
+                }
         ###########################################################################################
     def _clear_canvas(self):
         self.canvas = np.zeros((700, 700, 3), dtype="uint8")
@@ -143,44 +149,45 @@ class Plotter:
 
     def animate_ordergenerators(self, now):
         for ordergenerator in self.all_ordergenerators:
-            if ordergenerator.id not in self.ordergenerator_states:#没有的话就新建
-                self.ordergenerator_states[ordergenerator.id] = {
-                    'color': self.ordergenerator_color,
-                    'reset_time': None
-                }
 
             state = self.ordergenerator_states[ordergenerator.id]
-
+            print(state['color'])
             # 检查是否需要重置颜色
             if state['reset_time'] is not None and now >= state['reset_time']:
                 state['color'] = self.ordergenerator_color
                 state['reset_time'] = None
+                state['display_text'] = False
             # print(state['reset_time'])
-            # 遍历所有订单，检查是否需要更改颜色
+
+
+
             for order in self.all_orders:
-                if order.destination == ordergenerator:
-                    print(1)
-                    if abs(order.generation_time - now) <= 24:
+                if order.destination == ordergenerator.id:
+                    if abs(order.generation_time - now) <= 12:
                         state['color'] = self.generate_order_color
-                        state['reset_time'] = now + 100
+                        state['reset_time'] = now + 50
+                        state['display_text'] = 'green'
                         break
-                else:
-                    print(0)
+                    elif order.is_complete == True and abs(order.complete_time - now) <= 12:
+                        state['color'] = self.complete_order_color
+                        state['reset_time'] = now + 50
+                        state['display_text'] = 'red'
+                        break
 
             # 绘制 ordergenerator
             cv2.circle(self.canvas, self.trans(ordergenerator.x, ordergenerator.y),
                        self.ordergenerator_radius, state['color'], -1)
 
+            # 显示 "+1" 文本
+            if state['display_text']:
+                if state['display_text'] == 'green':
+                    cv2.putText(self.canvas, '+1', self.trans(ordergenerator.x + 2, ordergenerator.y + 2),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
+                elif state['display_text'] == 'red':
+                    cv2.putText(self.canvas, '+1', self.trans(ordergenerator.x + 2, ordergenerator.y + 2),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
 
-    # def animate_ordergenerators(self, now):
-    #     for ordergenerator in self.all_ordergenerators:
-    #         if 
-    #         cv2.circle(self.canvas, self.trans(ordergenerator.x, ordergenerator.y),
-    #                    self.ordergenerator_radius, self.ordergenerator_color, -1)
-
-    # def animate_midpoints(self):
-    #     for midpoint in all_midpoints:
-    #         cv2.circle(self.canvas, self.trans(midpoint.node.x, midpoint.node.y), self.midpoint_width, self.midpoint_color, -1)
+           
     def animate_roads(self):
 
         for road in self.map.roads:

@@ -6,13 +6,15 @@ from LargeEvent import *
 
 
 class Plotter:
-    def __init__(self, truck_list, depot_list, venue_list, map):
+    def __init__(self, truck_list, depot_list, venue_list, map, order_list):
         self.canvas = np.zeros((700, 700, 3), dtype=np.uint8)
         self.fps = 120
         self.truck_color = ((255, 0, 255))  # truck: purple
         self.depot_color = ((0, 255, 255))  # depot: yellow
         # self.venue_color = ((255, 0, 0))        #event venue: blue
         self.ordergenerator_color = ((0, 255, 0))  # order generator: green
+        self.generate_order_color = ((255, 0, 0))
+        self.arrival_order_color = ((0, 120, 0))
 
         self.midpoint_color = ((255, 165, 0))
         self.road_color = [
@@ -38,11 +40,13 @@ class Plotter:
         self.all_trucks: List[Truck] = truck_list
         self.all_depots: List[Depot] = depot_list
         self.all_venues: List[Venue] = venue_list
+        self.all_orders: List[Order] = order_list
         self.map: Graph = map
 
         self.all_ordergenerators = []
         self.all_ordergenerators.extend(self.map.get_type_nodes('Affectted_node'))
         self.all_ordergenerators.extend(self.map.get_type_nodes('Order_dest'))
+        self.ordergenerator_states = {}  # 用于存储每个 ordergenerator 的颜色和重置时间
 
         ###########################################################################################
     def _clear_canvas(self):
@@ -74,7 +78,7 @@ class Plotter:
         canvas_y = int(700-5*(y + 60))
         return canvas_x, canvas_y
 
-    def animate_mtime(self, now):
+    def animate_meantime(self, now):
         cv2.putText(self.canvas, str(int(now)), self.trans(-60, 60),
                     self.font, 0.7, (255, 255, 255), 1)
 
@@ -137,10 +141,42 @@ class Plotter:
             else:
                 raise "venue color error"
 
-    def animate_ordergenerators(self):
+    def animate_ordergenerators(self, now):
         for ordergenerator in self.all_ordergenerators:
+            if ordergenerator.id not in self.ordergenerator_states:#没有的话就新建
+                self.ordergenerator_states[ordergenerator.id] = {
+                    'color': self.ordergenerator_color,
+                    'reset_time': None
+                }
+
+            state = self.ordergenerator_states[ordergenerator.id]
+
+            # 检查是否需要重置颜色
+            if state['reset_time'] is not None and now >= state['reset_time']:
+                state['color'] = self.ordergenerator_color
+                state['reset_time'] = None
+            # print(state['reset_time'])
+            # 遍历所有订单，检查是否需要更改颜色
+            for order in self.all_orders:
+                if order.destination == ordergenerator:
+                    print(1)
+                    if abs(order.generation_time - now) <= 24:
+                        state['color'] = self.generate_order_color
+                        state['reset_time'] = now + 100
+                        break
+                else:
+                    print(0)
+
+            # 绘制 ordergenerator
             cv2.circle(self.canvas, self.trans(ordergenerator.x, ordergenerator.y),
-                       self.ordergenerator_radius, self.ordergenerator_color, -1)
+                       self.ordergenerator_radius, state['color'], -1)
+
+
+    # def animate_ordergenerators(self, now):
+    #     for ordergenerator in self.all_ordergenerators:
+    #         if 
+    #         cv2.circle(self.canvas, self.trans(ordergenerator.x, ordergenerator.y),
+    #                    self.ordergenerator_radius, self.ordergenerator_color, -1)
 
     # def animate_midpoints(self):
     #     for midpoint in all_midpoints:
@@ -194,10 +230,11 @@ class Plotter:
 
     def draw_canvas(self, now):
         self._clear_canvas()
-        self.animate_mtime(now)
+        self.animate_ordergenerators(now)
+        self.animate_meantime(now)
         self.animate_depots()
         self.animate_venues()
-        self.animate_ordergenerators()
+
         self.animate_roads()
         self.animate_trucks()
         # self.animate_midpoints()

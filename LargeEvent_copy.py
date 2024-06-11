@@ -303,7 +303,7 @@ class LargeEventGen(sim.Component):
     def update_road_weights(self, venue: Venue):
         for road in venue.influence_road:
             road.cong = venue.cong_level
-            print(road.cong)
+            # print(road.cong)
     def process(self):
         while True:
             current_time = self.env.now()
@@ -596,7 +596,7 @@ if __name__ == '__main__':
 
     #################### 3 STATISTICS ###################
 
-    print()
+    # print()
     # for d in depot_list:
     #     d.service_center.serve_queue.print_statistics()
-    print(truck_list[4].get_truck_pos())
+    # print(truck_list[4].get_truck_pos())

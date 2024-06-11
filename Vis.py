@@ -191,43 +191,44 @@ class Plotter:
     def animate_roads(self):
 
         for road in self.map.roads:
-            if road.road_type == False:
-                if road.cong == 0:
-                    # normal road and no congestion
+            if road.node1.id<road.node2.id:
+                if road.road_type == False:
+                    if road.cong == 0:
+                        # normal road and no congestion
 
-                    cv2.line(self.canvas, self.trans(road.node1.x, road.node1.y), self.trans(
-                        road.node2.x, road.node2.y), self.road_color[0], self.road_nor_width)
-                elif road.cong == 1:
-                    # normal road with congestion rank1
+                        cv2.line(self.canvas, self.trans(road.node1.x, road.node1.y), self.trans(
+                            road.node2.x, road.node2.y), self.road_color[0], self.road_nor_width)
+                    elif road.cong == 1:
+                        # normal road with congestion rank1
 
-                    cv2.line(self.canvas, self.trans(road.node1.x, road.node1.y), self.trans(
-                        road.node2.x, road.node2.y), self.road_color[1], self.road_nor_width)
-                elif road.cong == 2:
-                    # normal road with congestion rank2
+                        cv2.line(self.canvas, self.trans(road.node1.x, road.node1.y), self.trans(
+                            road.node2.x, road.node2.y), self.road_color[1], self.road_nor_width)
+                    elif road.cong == 2:
+                        # normal road with congestion rank2
 
-                    cv2.line(self.canvas, self.trans(road.node1.x, road.node1.y), self.trans(
-                        road.node2.x, road.node2.y), self.road_color[2], self.road_nor_width)
-                elif road.cong == 3:
-                    # normal road with congestion rank3
+                        cv2.line(self.canvas, self.trans(road.node1.x, road.node1.y), self.trans(
+                            road.node2.x, road.node2.y), self.road_color[2], self.road_nor_width)
+                    elif road.cong == 3:
+                        # normal road with congestion rank3
 
-                    cv2.line(self.canvas, self.trans(road.node1.x, road.node1.y), self.trans(
-                        road.node2.x, road.node2.y), self.road_color[3], self.road_nor_width)
-                elif road.cong == 4:
-                    # normal road with congestion rank4
+                        cv2.line(self.canvas, self.trans(road.node1.x, road.node1.y), self.trans(
+                            road.node2.x, road.node2.y), self.road_color[3], self.road_nor_width)
+                    elif road.cong == 4:
+                        # normal road with congestion rank4
 
-                    cv2.line(self.canvas, self.trans(road.node1.x, road.node1.y), self.trans(
-                        road.node2.x, road.node2.y), self.road_color[4], self.road_nor_width)
-                elif road.cong == 5:
-                    # normal road with congestion rank5
+                        cv2.line(self.canvas, self.trans(road.node1.x, road.node1.y), self.trans(
+                            road.node2.x, road.node2.y), self.road_color[4], self.road_nor_width)
+                    elif road.cong == 5:
+                        # normal road with congestion rank5
 
-                    cv2.line(self.canvas, self.trans(road.node1.x, road.node1.y), self.trans(
-                        road.node2.x, road.node2.y), self.road_color[5], self.road_nor_width)
+                        cv2.line(self.canvas, self.trans(road.node1.x, road.node1.y), self.trans(
+                            road.node2.x, road.node2.y), self.road_color[5], self.road_nor_width)
+                    else:
+                        print('Road_color error!!!')
                 else:
-                    print('Road_color error!!!')
-            else:
-                # highways
-                cv2.line(self.canvas, self.trans(road.node1.x, road.node1.y), self.trans(
-                    road.node2.x, road.node2.y), self.road_color[0], self.road_high_width)
+                    # highways
+                    cv2.line(self.canvas, self.trans(road.node1.x, road.node1.y), self.trans(
+                        road.node2.x, road.node2.y), self.road_color[0], self.road_high_width)
     # def animate_nodes(self):
     #     for node_id, node in all_nodes.items():
     #         # 获取节点的坐标
@@ -237,12 +238,13 @@ class Plotter:
 
     def draw_canvas(self, now):
         self._clear_canvas()
+        self.animate_roads()
         self.animate_ordergenerators(now)
         self.animate_meantime(now)
         self.animate_depots()
         self.animate_venues()
 
-        self.animate_roads()
+
         self.animate_trucks()
         # self.animate_midpoints()
         self.update_canvas()

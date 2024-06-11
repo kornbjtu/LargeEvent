@@ -24,7 +24,7 @@ class Venue:
     cong_level: float = 0
     cong_factor: float = 0
     last_update_time : float = 0
-
+    initial : int = 0
 @dataclass
 class Order:
     generation_time: float  # generation time
@@ -312,21 +312,24 @@ class LargeEventGen(sim.Component):
                 
                 # 检查当前时间是否在事件的开始时间和结束时间之间
                 if start_time <= current_time < end_time:
-                    if not hasattr(venue, 'cong_level') or venue.cong_level is None:
-                        # 初始化拥堵水平
+                    if venue.initial == 0 : 
                         venue.cong_level = self.gen_cong_level(venue,0)  # 初始阶段没有上一个拥堵水平，使用0
                         venue.cong_factor = self.cong_factors[venue.cong_level]
                         self.update_road_weights(venue)
                         venue.last_update_time = current_time
-                    else:
-                        # 根据上一个阶段的拥堵水平计算新的拥堵水平
-                        
+                        venue.initial += 1
+                    else: 
                         if current_time - venue.last_update_time >= self.stage_duration:  # 每个阶段开始时更新拥堵水平
                             prev_cong_level = venue.cong_level
                             venue.cong_level = self.gen_cong_level(venue,prev_cong_level)
                             venue.cong_factor = self.cong_factors[venue.cong_level]
                             self.update_road_weights(venue)
-            
+                            venue.last_update_time = current_time  
+                else: 
+                     venue.cong_level = 0
+                     venue.cong_factor = 0
+                     self.update_road_weights(venue)
+                     venue.initial=0
             self.hold(1)  # 每单位时间检查一次
 
 
@@ -477,7 +480,7 @@ if __name__ == '__main__':
     #     4: [map.node(27), map.node(28), map.node(15)],
     #     5: [map.node(29), map.node(30), map.node(11), map.node(12), map.node(13)]
     # }
-    STAGE_DURATION = m2s(30)  # 每个阶段持续时间
+    STAGE_DURATION = m2s(10)  # 每个阶段持续时间
 
 
 
@@ -492,7 +495,7 @@ if __name__ == '__main__':
 
     # 一天按12小时算总共43200s
     VENUES = [
-        Venue(node=map.node(1), start_time=h2s(0.01), duration=DURATION_DIST.sample(
+        Venue(node=map.node(1), start_time=200, duration=DURATION_DIST.sample(
         ), event_scale=2, influence_road=AFFECT_ROAD[1], affected_node=ORDER_AFFECT_NODE[1]),
         Venue(node=map.node(2), start_time=h2s(4), duration=DURATION_DIST.sample(
         ), event_scale=3, influence_road=AFFECT_ROAD[2], affected_node=ORDER_AFFECT_NODE[2]),

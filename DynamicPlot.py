@@ -60,11 +60,13 @@ class DynamicPlot:
     def get_ave_waiting_time(self):#计算已经完成的订单的平均等待的时间
         waiting_time = 0.0
         num = 0
+        ave_waiting_time = 0.0
         for order in self.order_list:
             if order.is_complete == True:
                 waiting_time += order.complete_time - order.generation_time
                 num+=1
-        ave_waiting_time = waiting_time/num
+            if num>0:
+                ave_waiting_time = waiting_time/num
         return ave_waiting_time
 
     def get_mile(self):#计算总里程

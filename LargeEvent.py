@@ -252,6 +252,14 @@ class Truck(sim.Component, AbstractTruck):
         
     def get_mile(self):
         return self.miles
+    
+    def get_condition(self):
+        if self.depot != None:
+            return "depot"
+        if self.serve_center != None:
+            return "serve"
+        else:
+            return "delivery"
 
 
 class ServiceCenter(sim.Component, AbstractServiceCenter):

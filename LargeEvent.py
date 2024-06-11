@@ -8,6 +8,7 @@ import salabim as sim
 from AbstractLargeEvent import *
 import random
 from Vis import *
+from DynamicPlot import *
 
 ################################## DATA CLASS ##########################################
 
@@ -380,12 +381,14 @@ class OrderGen(sim.Component):
 
 class Visual(sim.Component):
 
-    def setup(self, vis):
+    def setup(self, vis, dynamic_plot):
         self.vis: Plotter = vis
+        self.dp: DynamicPlot = dynamic_plot
 
     def process(self):
         while True:
             self.vis.draw_canvas(env.now())
+            self.dp.draw_graph(env.now())
 
             # it always runs at the first priority in each event time.
             self.hold(duration=1, priority=1)
@@ -545,7 +548,7 @@ if __name__ == '__main__':
     OrderGen(event_gen=event_gen)
 
     Visual(vis=Plotter(truck_list=truck_list,
-           depot_list=depot_list, venue_list=VENUES, map=map, order_list=order_list))
+           depot_list=depot_list, venue_list=VENUES, map=map, order_list=order_list), dynamic_plot=DynamicPlot(truck_list=truck_list, order_list=order_list, complete_times=complete_times, sim_time=SIM_TIME, consumption=CONSUMPTION))
 
     env.run(till=SIM_TIME)
 

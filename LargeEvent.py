@@ -447,12 +447,20 @@ if __name__ == '__main__':
         5: [map.get_road(5, x) for x in [29, 30]]
     }
 
+    # ORDER_AFFECT_NODE = {
+    #     1: [map.node(33), map.node(20), map.node(31), map.node(32)],
+    #     2: [map.node(22), map.node(21), map.node(6), map.node(14), map.node(8)],
+    #     3: [map.node(23), map.node(24), map.node(25), map.node(26), map.node(7), map.node(9), map.node(10)],
+    #     4: [map.node(27), map.node(28), map.node(15)],
+    #     5: [map.node(29), map.node(30), map.node(11), map.node(12), map.node(13)]
+    # }
+
     ORDER_AFFECT_NODE = {
-        1: [map.node(33), map.node(20), map.node(31), map.node(32)],
-        2: [map.node(22), map.node(21), map.node(6), map.node(14), map.node(8)],
-        3: [map.node(23), map.node(24), map.node(25), map.node(26), map.node(7), map.node(9), map.node(10)],
-        4: [map.node(27), map.node(28), map.node(15)],
-        5: [map.node(29), map.node(30), map.node(11), map.node(12), map.node(13)]
+    1: [map.node(33), map.node(20)],
+    2: [map.node(22), map.node(21)],
+    3: [map.node(23), map.node(24), map.node(25), map.node(26)],
+    4: [map.node(27), map.node(28)],
+    5: [map.node(29), map.node(30)]
     }
 
     # 一天按12小时算总共43200s

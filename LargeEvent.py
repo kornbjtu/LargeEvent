@@ -114,12 +114,13 @@ class Truck(sim.Component, AbstractTruck):
         self.departure_time: None | float = None
 
     def in_queue(self):
+        self.times["to_service_center"] = env.now()
         self.depot.service_center.serve_queue.add(self)
         self.serve_center = self.depot.service_center
         self.depot = None
         self.passivate()
 
-    def __get_next_order_travel(self, now_node: Node) -> Tuple[AbstractOrder, List[Road], float]:
+    def __get_next_order_travel(self, now_node: Node) -> Tuple[AbstractOrder, List[Node], float]:
 
         times = []
         for order in self.order_list:
@@ -149,7 +150,7 @@ class Truck(sim.Component, AbstractTruck):
     def deliver(self):
         self.depot = None  # detach the depot it belongs
         self.serve_center = None  # detach the service center it belongs
-        self.outd_time = env.now()
+        self.times["start_delivery"] = env.now()
 
         ### start delivery ###
 
@@ -157,7 +158,7 @@ class Truck(sim.Component, AbstractTruck):
             order_en_route, path, travel_time = self.__get_next_order_travel(
                 self.now_node)
 
-            self.update_truck_state(
+            self.__update_truck_state(
                 path=path, travel_time=travel_time, departure_time=env.now())
             self.hold(travel_time)
 
@@ -176,26 +177,46 @@ class Truck(sim.Component, AbstractTruck):
         return_depot = self.__decide_return_depot()
         path, travel_time = map.shortest_path(self.now_node, return_depot.node)
 
-        self.update_truck_state(
+        self.__update_truck_state(
             path=path, travel_time=travel_time, departure_time=env.now())
 
         self.hold(travel_time)
 
         ### arrive depot ###
 
-        self.update_truck_state(
+        self.__update_truck_state(
             path=None, travel_time=None, departure_time=None)
 
         self.depot = return_depot
-        # self.depot.truck_instock.append(self)
+        self.times["in_depot"] = env.now()
+
+        ### save data ###
+
+        complete_times.append(self.times)
+        self.__clear()
+
+
         self.passivate()
 
     ######### Truck data ########
 
-    def update_truck_state(self, path, travel_time, departure_time):
+    def __clear(self):
+        self.times = {
+            "start_delivery": None,
+            "to_service_center": None,
+            "in_depot": None
+        }
+
+    def __update_truck_state(self, path, travel_time, departure_time):
         self.path = path
         self.travel_time = travel_time
         self.departure_time = departure_time
+
+        # get travel distance
+        if self.path is not None:
+            distance = np.sum([map.get_road(self.path[ind], self.path[ind + 1]).length 
+                            for ind in range(len(self.path) - 1)])
+            self.miles += distance
 
     def get_truck_pos(self):
         if self.depot:  # in depot
@@ -230,7 +251,7 @@ class Truck(sim.Component, AbstractTruck):
             return on_road.get_pos(spent_time_on_road, from_node)
         
     def get_mile(self):
-        pass
+        return self.miles
 
 
 class ServiceCenter(sim.Component, AbstractServiceCenter):
@@ -486,6 +507,7 @@ if __name__ == '__main__':
     truck_list = []
     depot_list = []
     order_list = []
+    complete_times = [] # this list is to store the time spent that completes the tour. After one tour, the data in the truck will be cleaned.
 
     # dictionary of depot_id to depot
 

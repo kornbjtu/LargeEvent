@@ -20,10 +20,13 @@ class AbstractTruck:
 
         # necessary attributes
         self.id: int = id
-        self.outd_time: float = None  # out depot time
-        self.act_time: float = act_time  # active time
+        self.times: Dict[str, float] = {
+            "start_delivery": None,
+            "to_service_center": None,
+            "in_depot": None
+        }
+        self.miles: float = 0
         self.deli_arr_time: Dict[int, float]
-        self.ind_time: float = None  # in depot time
         self.depot: AbstractDepot = depot  # belonging to which depot
         # belonging to which service center
         self.serve_center: AbstractServiceCenter = None

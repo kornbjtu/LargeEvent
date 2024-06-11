@@ -18,13 +18,13 @@ class DynamicPlot:
         self.order_list: List[Order] = order_list
         self.complete_times:List[Dict[str, float]] = complete_times
         self.time_cons, self.disp_cons = consumption
-
+        self.lines = []
         self.fps = 24
 ##############计算函数
     def get_history(self):#计算已经完成的车辆的时间能耗
         history_con = 0.0
         for times in self.complete_times:
-            active_time = times['start_deliveery']
+            active_time = times['start_delivery']
             inpot_time = times['to_service_center']
             history_con += self.time_cons * (inpot_time-active_time)
         return history_con
@@ -34,7 +34,8 @@ class DynamicPlot:
         for truck in self.truck_list:
             
             if truck.get_condition() == "serve" or truck.get_condition() == "delivery":
-                ing_cons+=(now-truck.times['start_delivery']) * self.time_cons
+                if truck.times['start_delivery']:
+                    ing_cons+=(now-truck.times['start_delivery']) * self.time_cons
         return ing_cons
     
     def get_dis_cons(self): #计算距离能耗
@@ -93,82 +94,212 @@ class DynamicPlot:
         variables = [total_cons, standby_cons, waiting_time, mileage, int(now)]
         return variables
 
-
-        
-################
-    def draw_graph(self, now):
+    def initialize_window(self):
         plt.ion()
-        fig, axs = plt.subplots(3, 2, figsize=(10, 8))
+        self.fig, self.axs = plt.subplots(3, 2, figsize=(10, 8))
 
         # 设置表格在弹窗中的位置，并设置初始值
         for i in range(2):
-            axs[0, i].axis('off')
-            table = axs[0, i].table(cellText=self.table_data, loc='center', cellLoc='center')
+            self.axs[0, i].axis('off')
+            table = self.axs[0, i].table(cellText=self.table_data, loc='center', cellLoc='center')
             table.scale(1, 2)
 
         # 设置图在弹窗中的位置
-        lines = []
         colors = ['r-', 'y-', 'b-', 'g-']
         for i in range(2):
             for j in range(2):
-                ax = axs[i + 1, j]
+                ax = self.axs[i + 1, j]
                 ax.set_xlim(0, self.sim_time)
                 ax.set_title(f'Variable {2 * i + j + 1}')
                 line, = ax.plot([], [], colors[2 * i + j])
-                lines.append(line)
+                self.lines.append(line)
 
-
-                # 设置 x 坐标为 self.get_time
+                # 设置 x 坐标为初始值
                 x_data = [0]  # 初始 x 坐标
                 y_data = [0]  # 初始 y 坐标
                 line.set_xdata(x_data)
                 line.set_ydata(y_data)
+
         # 显示图表
         plt.show()
-        screen_width = fig.canvas.manager.window.winfo_screenwidth()
-        screen_height = fig.canvas.manager.window.winfo_screenheight()
-        window_width = fig.canvas.manager.window.winfo_width()
-        window_height = fig.canvas.manager.window.winfo_height()
+
+        screen_width = self.fig.canvas.manager.window.winfo_screenwidth()
+        screen_height = self.fig.canvas.manager.window.winfo_screenheight()
+        window_width = self.fig.canvas.manager.window.winfo_width()
+        window_height = self.fig.canvas.manager.window.winfo_height()
 
         # 计算窗口在右下角时的位置
         x_position = screen_width - window_width
         y_position = screen_height - window_height
 
         # 移动窗口
-        fig.canvas.manager.window.wm_geometry(f"+{x_position}+{y_position}")
+        self.fig.canvas.manager.window.wm_geometry(f"+{x_position}+{y_position}")
 
+    def update_data(self, now):
+        # 更新表格数据
+        variables = self.get_variables(now)
+        for i in range(4):
+            self.table_data[i][1] = f"{variables[i]:.2f}"
 
-        while now < self.sim_time:
-            plt.pause(1/self.fps)
+        # 更新图表数据
+        for i, line in enumerate(self.lines):
+            x_data = list(line.get_xdata())
+            y_data = list(line.get_ydata())
+            x_data.append(variables[4])
+            y_data.append(variables[i])
+            line.set_xdata(x_data)
+            line.set_ydata(y_data)
 
-            # 更新表格数据
-            variables = self.get_variables(now)
-            for i in range(4):
-                self.table_data[i][1] = f"{variables[i]:.2f}"
+            # 自动调整图表的显示范围
+            ax = self.axs[i // 2 + 1, i % 2]
+            ax.relim()
+            ax.autoscale_view()
 
-            # 更新图表数据
-            for i, line in enumerate(lines):
-                x_data = list(line.get_xdata())
-                y_data = list(line.get_ydata())
-                x_data.append(variables[4])
-                y_data.append(variables[i])
-                line.set_xdata(x_data)
-                line.set_ydata(y_data)
+        # 更新表格显示
+        for i in range(2):
+            self.axs[0, i].cla()
+            self.axs[0, i].axis('off')
+            table = self.axs[0, i].table(cellText=self.table_data, loc='center', cellLoc='center')
+            table.scale(1, 2)
 
-                # 自动调整图表的显示范围
-                ax = axs[i // 2 + 1, i % 2]
-                ax.relim()
-                ax.autoscale_view()
+   
 
-            # 更新表格显示
-            for i in range(2):
-                axs[0, i].cla()
-                axs[0, i].axis('off')
-                table = axs[0, i].table(cellText=self.table_data, loc='center', cellLoc='center')
-                table.scale(1, 2)
+    def draw_graph(self, now):
+        
+        self.update_data(now)
 
         plt.ioff()
-        plt.show()
+        plt.pause(0.001)  # 使用 plt.draw() 代替 plt.show()
+        print(1)
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+################
+    # def draw_graph(self, now):
+    #     plt.ion()
+    #     fig, axs = plt.subplots(3, 2, figsize=(10, 8))
+
+    #     # 设置表格在弹窗中的位置，并设置初始值
+    #     for i in range(2):
+    #         axs[0, i].axis('off')
+    #         table = axs[0, i].table(cellText=self.table_data, loc='center', cellLoc='center')
+    #         table.scale(1, 2)
+
+    #     # 设置图在弹窗中的位置
+
+    #     colors = ['r-', 'y-', 'b-', 'g-']
+    #     for i in range(2):
+    #         for j in range(2):
+    #             ax = axs[i + 1, j]
+    #             ax.set_xlim(0, self.sim_time)
+    #             ax.set_title(f'Variable {2 * i + j + 1}')
+    #             line, = ax.plot([], [], colors[2 * i + j])
+    #             lines.append(line)
+
+
+    #             # 设置 x 坐标为 self.get_time
+    #             x_data = [0]  # 初始 x 坐标
+    #             y_data = [0]  # 初始 y 坐标
+    #             line.set_xdata(x_data)
+    #             line.set_ydata(y_data)
+    #     # 显示图表
+    #     plt.show()
+    #     screen_width = fig.canvas.manager.window.winfo_screenwidth()
+    #     screen_height = fig.canvas.manager.window.winfo_screenheight()
+    #     window_width = fig.canvas.manager.window.winfo_width()
+    #     window_height = fig.canvas.manager.window.winfo_height()
+
+    #     # 计算窗口在右下角时的位置
+    #     x_position = screen_width - window_width
+    #     y_position = screen_height - window_height
+
+    #     # 移动窗口
+    #     fig.canvas.manager.window.wm_geometry(f"+{x_position}+{y_position}")
+
+
+    
+
+
+    #     while now < self.sim_time:
+    #         plt.pause(1/self.fps)
+
+    #         # 更新表格数据
+    #         variables = self.get_variables(now)
+    #         for i in range(4):
+    #             self.table_data[i][1] = f"{variables[i]:.2f}"
+
+    #         # 更新图表数据
+    #         for i, line in enumerate(lines):
+    #             x_data = list(line.get_xdata())
+    #             y_data = list(line.get_ydata())
+    #             x_data.append(variables[4])
+    #             y_data.append(variables[i])
+    #             line.set_xdata(x_data)
+    #             line.set_ydata(y_data)
+
+    #             # 自动调整图表的显示范围
+    #             ax = axs[i // 2 + 1, i % 2]
+    #             ax.relim()
+    #             ax.autoscale_view()
+
+    #         # 更新表格显示
+    #         for i in range(2):
+    #             axs[0, i].cla()
+    #             axs[0, i].axis('off')
+    #             table = axs[0, i].table(cellText=self.table_data, loc='center', cellLoc='center')
+    #             table.scale(1, 2)
+
+    #     plt.ioff()
+    #     plt.show()
 
 # if __name__ == "__main__":
 #     # 示例用法

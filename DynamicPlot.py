@@ -1,4 +1,7 @@
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('TkAgg')
+
 from LargeEvent import *
 
 class DynamicPlot:
@@ -122,6 +125,18 @@ class DynamicPlot:
                 line.set_ydata(y_data)
         # 显示图表
         plt.show()
+        screen_width = fig.canvas.manager.window.winfo_screenwidth()
+        screen_height = fig.canvas.manager.window.winfo_screenheight()
+        window_width = fig.canvas.manager.window.winfo_width()
+        window_height = fig.canvas.manager.window.winfo_height()
+
+        # 计算窗口在右下角时的位置
+        x_position = screen_width - window_width
+        y_position = screen_height - window_height
+
+        # 移动窗口
+        fig.canvas.manager.window.wm_geometry(f"+{x_position}+{y_position}")
+
 
         while now < self.sim_time:
             plt.pause(1/self.fps)

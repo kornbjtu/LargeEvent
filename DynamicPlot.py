@@ -100,7 +100,7 @@ class DynamicPlot:
     def initialize_window(self):
         plt.ion()
         self.fig, self.axs = plt.subplots(3, 2, figsize=(10, 8))
-
+        self.fig.subplots_adjust(top=0.85)
         # 设置表格在弹窗中的位置，并设置初始值
         for i in range(2):
             self.axs[0, i].axis('off')
@@ -111,14 +111,19 @@ class DynamicPlot:
         colors = ['r-', 'y-', 'b-', 'g-']
         for i in range(2):
             for j in range(2):
-                ax = self.axs[i + 1, j]
+                ax = self.axs[i+1 , j]
                 # ax.set_xlim(0, self.sim_time)
-                # index = 2 * i + j  # 计算 self.table_data 的索引
-
-                # ax = self.axs[i, j]
-                # title = self.table_data[index][0]  # 获取标题文本
-                # ax.set_title(title)
-                ax.set_title(f'Variable {2 * i + j + 1}')
+                index = 2 * i + j  # 计算 self.table_data 的索引
+                if index == 0:
+                    ax.set_title("Total Consumption", fontsize=8)
+                elif index ==1:
+                    ax.set_title("Standby Consumtion", fontsize=8)
+                elif index ==2:
+                    ax.set_title("Orders' Average Waiting", fontsize=8)
+                elif index ==3:
+                    ax.set_title("Total Mileage", fontsize=8)
+                
+                # ax.set_title(f'Variable {2 * i + j + 1}')
                 line, = ax.plot([], [], colors[2 * i + j])
                 self.lines.append(line)
 
@@ -127,6 +132,8 @@ class DynamicPlot:
                 y_data = [0]  # 初始 y 坐标
                 line.set_xdata(x_data)
                 line.set_ydata(y_data)
+                ax.tick_params(axis='x', labelsize=8)
+                ax.tick_params(axis='y', labelsize=8)
         # # 调整子图间距
         # self.fig.subplots_adjust(hspace=0.5)  # 增加垂直间距
         # 显示图表

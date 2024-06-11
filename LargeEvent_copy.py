@@ -25,6 +25,7 @@ class Venue:
     cong_factor: float = 0
     last_update_time : float = 0
     initial : int = 0
+    map: Graph = map
 @dataclass
 class Order:
     generation_time: float  # generation time
@@ -290,6 +291,7 @@ class LargeEventGen(sim.Component):
         self.cong_levels: List[int] = CONG_LEVELS
         self.cong_factors: Dict[int, float] = CONG_FACTORS
         self.stage_duration: int =  STAGE_DURATION
+        
     def gen_cong_level(self, venue: Venue, prev_cong_level: int) -> int:
         scale_index = venue.event_scale
         if prev_cong_level == 0 :
@@ -301,7 +303,7 @@ class LargeEventGen(sim.Component):
     def update_road_weights(self, venue: Venue):
         for road in venue.influence_road:
             road.cong = venue.cong_level
-
+            print(road.cong)
     def process(self):
         while True:
             current_time = self.env.now()

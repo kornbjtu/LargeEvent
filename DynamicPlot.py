@@ -20,6 +20,18 @@ class DynamicPlot:
         self.time_cons, self.disp_cons = consumption
         self.lines = []
         self.fps = 24
+
+        self.all_var =[]
+        self.variables: Dict[str, float] = {
+            "total_cons": None,
+            "standby_cons": None,
+            "ave_waiting_time": None,
+            "mileage": None,
+            "mean_time": 0
+        }
+
+ 
+
 ##############计算函数
     def get_history(self):#计算已经完成的车辆的时间能耗
         history_con = 0.0
@@ -140,7 +152,7 @@ class DynamicPlot:
         plt.show()
 
        
-    def update_data(self, now):
+    def update_graph(self, now):
         # 更新表格数据
         variables = self.get_variables(now)
         for i in range(4):
@@ -174,7 +186,7 @@ class DynamicPlot:
 
     def draw_graph(self, now):
         
-        self.update_data(now)
+        self.update_graph(now)
         
 
             

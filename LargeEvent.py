@@ -203,8 +203,8 @@ class Truck(sim.Component, AbstractTruck):
 
     def __clear(self):
         self.times = {
-            "start_delivery": None,
             "to_service_center": None,
+            "start_delivery": None,
             "in_depot": None
         }
 
@@ -565,7 +565,7 @@ if __name__ == '__main__':
 
     #################### 3 STATISTICS ###################
 
-    print()
+    # print()
     # for d in depot_list:
     #     d.service_center.serve_queue.print_statistics()
-    print(truck_list[4].get_truck_pos())
+    # print(truck_list[4].get_truck_pos())

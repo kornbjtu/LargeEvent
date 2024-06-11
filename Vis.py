@@ -151,7 +151,7 @@ class Plotter:
         for ordergenerator in self.all_ordergenerators:
 
             state = self.ordergenerator_states[ordergenerator.id]
-            print(state['color'])
+            # print(state['color'])
             # 检查是否需要重置颜色
             if state['reset_time'] is not None and now >= state['reset_time']:
                 state['color'] = self.ordergenerator_color
@@ -178,13 +178,13 @@ class Plotter:
             cv2.circle(self.canvas, self.trans(ordergenerator.x, ordergenerator.y),
                        self.ordergenerator_radius, state['color'], -1)
 
-            # 显示 "+1" 文本
+            # 显示文本
             if state['display_text']:
                 if state['display_text'] == 'green':
-                    cv2.putText(self.canvas, '+1', self.trans(ordergenerator.x + 2, ordergenerator.y + 2),
+                    cv2.putText(self.canvas, 'New', self.trans(ordergenerator.x + 2, ordergenerator.y + 2),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
                 elif state['display_text'] == 'red':
-                    cv2.putText(self.canvas, '+1', self.trans(ordergenerator.x + 2, ordergenerator.y + 2),
+                    cv2.putText(self.canvas, 'Arvl', self.trans(ordergenerator.x + 2, ordergenerator.y + 2),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
 
            

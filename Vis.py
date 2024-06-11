@@ -30,8 +30,8 @@ class Plotter:
         self.depot_radius = 10
         self.venue_radius = 10
         self.ordergenerator_radius = 6
-        self.road_nor_width = 1
-        self.road_high_width = 2
+        self.road_nor_width = 2
+        self.road_high_width = 3
         self.midpoint_width = 4
         self.rect_width, self.rect_height = 1, 2  # 长方形的尺寸
         self.gap = 0.5  # 长方形之间的间隔

@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from LargeEvent import *
 
 class DynamicPlot:
-    def __init__(self, truck_list, order_list, complete_truck_list, sim_time, consumption):
+    def __init__(self, truck_list, order_list, complete_times, sim_time, consumption):
 
         self.sim_time = sim_time
         self.table_data = [["Total Consumption", "0"],
@@ -13,17 +13,16 @@ class DynamicPlot:
                            
         self.truck_list: List[Truck] = truck_list
         self.order_list: List[Order] = order_list
-        self.truck_list: List[Truck] = truck_list
-        self.complete_truck_list = complete_truck_list
+        self.complete_times:List[Dict[str, float]] = complete_times
         self.time_cons, self.disp_cons = consumption
 
         self.fps = 24
 ##############计算函数
     def get_history(self):#计算已经完成的车辆的时间能耗
         history_con = 0.0
-        for i in range(len(self.complete_truck_list)):
-            active_time = self.complete_truck_list[i]['active_time']
-            inpot_time = self.complete_truck_list[i]['inpot_time']
+        for times in self.complete_times:
+            active_time = times['start_deliveery']
+            inpot_time = times['to_service_center']
             history_con += self.time_cons * (inpot_time-active_time)
         return history_con
 
@@ -31,8 +30,8 @@ class DynamicPlot:
         ing_cons = 0.0
         for truck in self.truck_list:
             
-            if truck.condition == 1 or truck.condition == 2:
-                ing_cons+=(now-truck.active_time) * self.time_cons
+            if truck.get_condition() == "serve" or truck.get_condition() == "delivery":
+                ing_cons+=(now-truck.times['start_delivery']) * self.time_cons
         return ing_cons
     
     def get_dis_cons(self): #计算距离能耗
@@ -44,14 +43,17 @@ class DynamicPlot:
     
     def get_standby_cons(self, now):#计算总闲置能耗
         standby_cons = 0.0
-        for i in range(len(self.complete_truck_list)):
-            active_time = self.complete_truck_list[i]['active_time']
-            outpot_time = self.complete_truck_list[i]['outpot_time']
+        for times in self.complete_times:
+            active_time = times['start_delivery']
+            outpot_time = times['to_service_center']
             standby_cons += self.time_cons * (outpot_time - active_time)
         for truck in self.truck_list:
-            if truck.condition == 1:
+            active_time = truck.times['start_delivery']
+
+            if truck.get_condition == "serve":
                 standby_cons += self.time_cons * (now-active_time)
-            elif truck.condition == 1:
+            elif truck.get_condition == "delivery":
+                outpot_time = truck.times['to_service_center']
                 standby_cons += self.time_cons * (outpot_time-active_time)
         return standby_cons
     

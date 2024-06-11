@@ -386,9 +386,12 @@ class Visual(sim.Component):
         self.dp: DynamicPlot = dynamic_plot
 
     def process(self):
+        self.dp.initialize_window()
         while True:
             self.vis.draw_canvas(env.now())
-            self.dp.draw_graph(env.now())
+            
+            if env.now() % 100 == 0:
+                self.dp.draw_graph(env.now())
 
             # it always runs at the first priority in each event time.
             self.hold(duration=1, priority=1)

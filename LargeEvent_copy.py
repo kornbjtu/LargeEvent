@@ -26,6 +26,7 @@ class Venue:
     last_update_time : float = 0
     initial : int = 0
     map: Graph = map
+    prev_cong_level : int = 0
 @dataclass
 class Order:
     generation_time: float  # generation time
@@ -292,12 +293,12 @@ class LargeEventGen(sim.Component):
         self.cong_factors: Dict[int, float] = CONG_FACTORS
         self.stage_duration: int =  STAGE_DURATION
         
-    def gen_cong_level(self, venue: Venue, prev_cong_level: int) -> int:
+    def gen_cong_level(self, venue: Venue) -> int:
         scale_index = venue.event_scale
-        if prev_cong_level == 0 :
+        if venue.prev_cong_level == 0 :
              cong_level_probs = self.trans_mat[scale_index]
         else :
-             cong_level_probs = self.trans_mat[prev_cong_level]
+             cong_level_probs = self.trans_mat[venue.prev_cong_level]
         return random.choices(self.cong_levels, cong_level_probs)[0]
 
     def update_road_weights(self, venue: Venue):
@@ -306,7 +307,7 @@ class LargeEventGen(sim.Component):
             print(road.cong)
     def process(self):
         while True:
-            current_time = self.env.now()
+            current_time = env.now()
             for venue in self.venue:
                 start_time = venue.start_time
                 duration = venue.duration
@@ -315,15 +316,15 @@ class LargeEventGen(sim.Component):
                 # 检查当前时间是否在事件的开始时间和结束时间之间
                 if start_time <= current_time < end_time:
                     if venue.initial == 0 : 
-                        venue.cong_level = self.gen_cong_level(venue,0)  # 初始阶段没有上一个拥堵水平，使用0
+                        venue.cong_level = self.gen_cong_level(venue)  # 初始阶段没有上一个拥堵水平，使用0
                         venue.cong_factor = self.cong_factors[venue.cong_level]
                         self.update_road_weights(venue)
                         venue.last_update_time = current_time
                         venue.initial += 1
                     else: 
                         if current_time - venue.last_update_time >= self.stage_duration:  # 每个阶段开始时更新拥堵水平
-                            prev_cong_level = venue.cong_level
-                            venue.cong_level = self.gen_cong_level(venue,prev_cong_level)
+                            venue.prev_cong_level = venue.cong_level
+                            venue.cong_level = self.gen_cong_level(venue)
                             venue.cong_factor = self.cong_factors[venue.cong_level]
                             self.update_road_weights(venue)
                             venue.last_update_time = current_time  
@@ -450,7 +451,7 @@ if __name__ == '__main__':
 
     GAP_DIST = sim.Uniform(m2s(0.5), m2s(1))  # 订单生成时间的分布
 
-    DURATION_DIST = sim.Uniform(h2s(0.5), h2s(1.5))  # event持续时间的
+    DURATION_DIST = sim.Uniform(h2s(0.5), h2s(0.6))  # event持续时间的
 
     VOLUME_DIST = sim.Uniform(1, 4)  # 订单生成的load的分布
 
@@ -482,7 +483,7 @@ if __name__ == '__main__':
     #     4: [map.node(27), map.node(28), map.node(15)],
     #     5: [map.node(29), map.node(30), map.node(11), map.node(12), map.node(13)]
     # }
-    STAGE_DURATION = m2s(10)  # 每个阶段持续时间
+    STAGE_DURATION = 100  # 每个阶段持续时间
 
 
 
@@ -497,11 +498,11 @@ if __name__ == '__main__':
 
     # 一天按12小时算总共43200s
     VENUES = [
-        Venue(node=map.node(1), start_time=200, duration=DURATION_DIST.sample(
+        Venue(node=map.node(1), start_time=100, duration=DURATION_DIST.sample(
         ), event_scale=2, influence_road=AFFECT_ROAD[1], affected_node=ORDER_AFFECT_NODE[1]),
-        Venue(node=map.node(2), start_time=h2s(4), duration=DURATION_DIST.sample(
+        Venue(node=map.node(2), start_time=200, duration=DURATION_DIST.sample(
         ), event_scale=3, influence_road=AFFECT_ROAD[2], affected_node=ORDER_AFFECT_NODE[2]),
-        Venue(node=map.node(3), start_time=h2s(3), duration=DURATION_DIST.sample(
+        Venue(node=map.node(3), start_time=300, duration=DURATION_DIST.sample(
         ), event_scale=1, influence_road=AFFECT_ROAD[3], affected_node=ORDER_AFFECT_NODE[3]),
         Venue(node=map.node(4), start_time=h2s(6), duration=DURATION_DIST.sample(
         ), event_scale=4, influence_road=AFFECT_ROAD[4], affected_node=ORDER_AFFECT_NODE[4]),

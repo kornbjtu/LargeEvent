@@ -289,25 +289,50 @@ class LargeEventGen(sim.Component):
         self.trans_mat: List[List[float]] = TRANS_MAT
         self.cong_levels: List[int] = CONG_LEVELS
         self.cong_factors: Dict[int, float] = CONG_FACTORS
-
+        self.stage_duration: int =  STAGE_DURATION
+        
     def gen_cong_level(self, venue: Venue) -> int:
         scale_index = venue.event_scale
-        cong_level_probs = self.trans_mat[scale_index]
+        if venue.prev_cong_level == 0 :
+             cong_level_probs = self.trans_mat[scale_index]
+        else :
+             cong_level_probs = self.trans_mat[venue.prev_cong_level]
         return random.choices(self.cong_levels, cong_level_probs)[0]
 
     def update_road_weights(self, venue: Venue):
         for road in venue.influence_road:
-            road.cong = self.cong_factors[venue.node.id]
-
+            road.cong = venue.cong_level
+            # print(road.cong)
     def process(self):
         while True:
-            num_venues_to_generate = random.randint(1, len(self.venue))
-            selected_venues = random.sample(self.venue, num_venues_to_generate)
-            for venue in selected_venues:
-                venue.cong_level = self.gen_cong_level(venue)
-                venue.cong_factor = self.cong_factors[venue.cong_level]
+            current_time = env.now()
+            for venue in self.venue:
+                start_time = venue.start_time
+                duration = venue.duration
+                end_time = start_time + duration
+                
+                # 检查当前时间是否在事件的开始时间和结束时间之间
+                if start_time <= current_time < end_time:
+                    if venue.initial == 0 : 
+                        venue.cong_level = self.gen_cong_level(venue)  # 初始阶段没有上一个拥堵水平，使用0
+                        venue.cong_factor = self.cong_factors[venue.cong_level]
+                        self.update_road_weights(venue)
+                        venue.last_update_time = current_time
+                        venue.initial += 1
+                    else: 
+                        if current_time - venue.last_update_time >= self.stage_duration:  # 每个阶段开始时更新拥堵水平
+                            venue.prev_cong_level = venue.cong_level
+                            venue.cong_level = self.gen_cong_level(venue)
+                            venue.cong_factor = self.cong_factors[venue.cong_level]
+                            self.update_road_weights(venue)
+                            venue.last_update_time = current_time  
+                else: 
+                     venue.cong_level = 0
+                     venue.cong_factor = 0
+                     self.update_road_weights(venue)
+                     venue.initial=0
+            self.hold(1)  # 每单位时间检查一次
 
-            self.hold(1)
 
 
 class OrderGen(sim.Component):
@@ -457,7 +482,7 @@ if __name__ == '__main__':
     #     4: [map.node(27), map.node(28), map.node(15)],
     #     5: [map.node(29), map.node(30), map.node(11), map.node(12), map.node(13)]
     # }
-
+    STAGE_DURATION = m2s(20)  # 每个阶段持续时间
     ORDER_AFFECT_NODE = {
     1: [map.node(33), map.node(20)],
     2: [map.node(22), map.node(21)],

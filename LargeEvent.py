@@ -23,7 +23,10 @@ class Venue:
     affected_node: List[Node]
     cong_level: float = 0
     cong_factor: float = 0
-
+    last_update_time : float = 0
+    initial : int = 0
+    map: Graph = map
+    prev_cong_level : int = 0
 
 @dataclass
 class Order:

@@ -8,14 +8,15 @@ class DynamicPlot:
     def __init__(self, truck_list,depot_list, order_list, complete_times, sim_time, consumption):
 
         self.sim_time = sim_time
-        self.table_data = [[["Total Consumption", "0"],
-                           ["Standby Consumtion", "0"],
-                           ["Orders' Average Waiting", "0"],
-                           ["Total Mileage", "0"],
-                           ], [["Total Orders", "0"],
-                           ["Carbon Emission", "0"],
-                           ["Pending Var1", "0"],
-                           ["Pengding Var2", "0"],
+        self.table_data = [[["Total Consumption/kwh", "0"],
+                           ["Standby Consumtion/kwh", "0"],
+                           ["Orders' Average Waiting/s", "0"],
+                           ["Total Mileage/km", "0"],], 
+
+                           [["Total Orders", "0"],
+                           ["Carbon Emission/kg", "0"],
+                           ["Trucks' Average Queue Time", "0"],
+                           ["Total Queue Length", "0"],
                            ]]
 
                                    
@@ -24,23 +25,32 @@ class DynamicPlot:
         self.depot_list: List[Depot] = depot_list
         self.complete_times:List[Dict[str, float]] = complete_times
         self.time_cons, self.disp_cons = consumption
-        self.lines = []
-        self.fps = 24
 
+        self.fps = 24
+        self.lines = []
         self.all_var =[]
         self.variables: Dict[str, float] = {
-            "total_cons": None,     #全场总能耗
-            "standby_cons": None,   #闲置能耗（排队时的能耗）
-            "ave_waiting_time": None,   #每个订单平均等待时间
-            "mileage": None,        #所有truck行驶总里程
+            "total_cons": 0.0,     #全场总能耗
+            "standby_cons": 0.0,   #闲置能耗（排队时的能耗）
+            "ave_waiting_time": 0.0,   #每个订单平均等待时间
+            "mileage": 0.0,        #所有truck行驶总里程
             "mean_time": 0,          #实时时间（用于检索）
             "truck_in_depot":[],     #每个depot里的truck数量
-            "carbon_emission":None,     #碳排放量
+            "carbon_emission":0.0,     #碳排放量
             "order_number": 0 ,      #订单总数
-            "ave_queue_time": None      #平均排队时间
+            "ave_queue_time": 0.0,      #平均排队时间
+            "total_queue_length": 0     #所有depot的排队总长
         }
 
- 
+
+    def clear_variables(self):
+        for key in self.variables:
+            if key == "mean_time" or key == "order_number":
+                self.variables[key]=0
+            elif key == "truck_in_depot":
+                self.variables[key] = []
+            else:
+                self.variables[key] = 0.0
 
 ##############计算函数
     def get_history(self):#计算已经完成的车辆的时间能耗
@@ -106,35 +116,64 @@ class DynamicPlot:
 
     def get_truck_in_depot(self):       #每个depot里的truck数量
         truck_in_depot = []
-        for depot in depot_list:
+        for depot in self.depot_list:
             depot_id = depot.id
-            trucks_in_depot = depot.get_truck_instock()
-            truck_in_depot[depot_id] = trucks_in_depot
+            dptr_list = depot.get_truck_instock()
+            truck_num = len(dptr_list)
+            truck_in_depot.append((depot_id, truck_num))
 
         return truck_in_depot
 
 
     def get_order_number(self):
-        order_number = len(order_list)
+        order_number = len(self.order_list)
         return order_number
 
-
+    def get_total_queue_length(self):
+        length = 0
+        for depot in self.depot_list:
+            length += depot.service_center.serve_queue.length()
+        return length
 
     def get_variables(self, now):
-        variables=[]       
+
+        # variables=[]   
+        self.clear_variables()
+
         history_cons = self.get_history()
         ing_cons = self.get_ing_cons(now)
         dis_cons = self.get_dis_cons()
         standby_cons = self.get_standby_cons(now)
         ave_waiting_time = self.get_ave_waiting_time()
+        truck_in_depot = []
+        truck_in_depot = self.get_truck_in_depot()
+        order_number = self.get_order_number()
         mile = self.get_mile()
-        total_cons = history_cons + ing_cons + dis_cons
-        standby_cons = standby_cons
-        waiting_time = ave_waiting_time
-        mileage = mile
+        emission = (history_cons + ing_cons + dis_cons)*0.268
+        queue_length = self.get_total_queue_length()
+
+        self.variables["total_cons"] = history_cons + ing_cons + dis_cons
+        self.variables["standby_cons"] = standby_cons
+        self.variables["ave_waiting_time"] = ave_waiting_time
+        self.variables["mileage"] = mile
+        self.variables["mean_time"] = now
+        self.variables["truck_in_depot"] = truck_in_depot
+        self.variables["order_number"] = order_number
+        self.variables["carbon_emission"] = emission
+        self.variables["total_queue_length"] = queue_length
+        self.all_var.append(self.variables)
+
         
-        variables = [total_cons, standby_cons, waiting_time, mileage, int(now)]
-        return variables
+        # variables = [total_cons, standby_cons, waiting_time, mileage, int(now)]
+        # return variables
+    def take_var(self, time:int):
+        for variables in self.all_var:
+            if time == variables["mean_time"]:
+                return variables
+            else:
+                print("Fail taking out variables!!!")
+                return None
+
 
     def initialize_window(self):
         plt.ion()
@@ -146,9 +185,8 @@ class DynamicPlot:
             table = self.axs[0, i].table(cellText=self.table_data[i], loc='center', cellLoc='center')
             table.scale(1, 2)
       
-
-        # 设置图在弹窗中的位置
-        colors = ['r-', 'y-', 'b-', 'g-']
+     
+        colors = ['r-', 'y-', 'b-', 'g-', 'r-', 'b-', 'g-', 'k-']  # 每个子图的颜色
         for i in range(2):
             for j in range(2):
                 ax = self.axs[i+1 , j]
@@ -156,53 +194,68 @@ class DynamicPlot:
                 index = 2 * i + j  # 计算 self.table_data 的索引
                 if index == 0:
                     ax.set_title("Total Consumption", fontsize=8)
+                    self.lines.append(ax.plot([], [], 'r-')[0])  # total_cons, red
+                    self.lines.append(ax.plot([], [], 'b-')[0])  # standby_cons, blue
                 elif index ==1:
-                    ax.set_title("Standby Consumtion", fontsize=8)
+                    ax.set_title("Truck In Depot", fontsize=8)
+                    self.lines.append(ax.plot([], [], 'r-')[0])  # truck_in_depot[0], red
+                    self.lines.append(ax.plot([], [], 'g-')[0])  # truck_in_depot[1], green
+                    self.lines.append(ax.plot([], [], 'y-')[0])  # truck_in_depot[2], yellow
+                    self.lines.append(ax.plot([], [], 'k-')[0])  # truck_in_depot[3], black
                 elif index ==2:
                     ax.set_title("Orders' Average Waiting", fontsize=8)
+                    self.lines.append(ax.plot([], [], 'g-')[0])  # ave_waiting_time, green
                 elif index ==3:
-                    ax.set_title("Total Mileage", fontsize=8)
+                    ax.set_title("Average Queue Time", fontsize=8)
+                    self.lines.append(ax.plot([], [], 'k-')[0])  # ave_queue_time, black
                 
-                # ax.set_title(f'Variable {2 * i + j + 1}')
-                line, = ax.plot([], [], colors[2 * i + j])
-                self.lines.append(line)
-
-                # 设置 x 坐标为初始值
-                x_data = [0]  # 初始 x 坐标
-                y_data = [0]  # 初始 y 坐标
-                line.set_xdata(x_data)
-                line.set_ydata(y_data)
-                ax.tick_params(axis='x', labelsize=8)
-                ax.tick_params(axis='y', labelsize=8)
-        # # 调整子图间距
-        # self.fig.subplots_adjust(hspace=0.5)  # 增加垂直间距
-        # 显示图表
+         
         plt.show()
 
-       
+    def _update_line(self, line, x, y):
+        x_data = list(line.get_xdata())
+        y_data = list(line.get_ydata())
+        x_data.append(x)
+        y_data.append(y)
+        line.set_xdata(x_data)
+        line.set_ydata(y_data)
+        ax = line.axes
+        ax.relim()
+        ax.autoscale_view()
+
     def update_graph(self, now):
+
         # 更新表格数据
-        variables = self.get_variables(now)
-        for i in range(4):
-            self.table_data[0][i][1] = f"{variables[i]:.2f}"
-###########################################################################缺少右边数据的更新
+        self.get_variables(now)
+        self.table_data[0][0][1] = f"{self.variables['total_cons']:.2f}"
+        self.table_data[0][1][1] = f"{self.variables['standby_cons']:.2f}"
+        self.table_data[0][2][1] = f"{self.variables['ave_waiting_time']:.2f}"
+        self.table_data[0][3][1] = f"{self.variables['mileage']:.2f}"
+        self.table_data[1][0][1] = f"{self.variables['order_number']:.2f}"
+        self.table_data[1][1][1] = f"{self.variables['carbon_emission']:.2f}"
+        self.table_data[1][2][1] = f"{self.variables['ave_queue_time']:.2f}"
+        self.table_data[1][3][1] = f"{self.variables['total_queue_length']:.2f}"
+
+
         # 更新图表数据
+        mean_time = self.variables['mean_time']
+        self._update_line(self.lines[0], mean_time, self.variables['total_cons'])
+        self._update_line(self.lines[1], mean_time, self.variables['standby_cons'])
+        
+        # Update second subplot
+        for i in range(4):
+            self._update_line(self.lines[2 + i], mean_time, self.variables['truck_in_depot'][i][1])
+        
+        # Update third subplot
+        self._update_line(self.lines[6], mean_time, self.variables['ave_waiting_time'])
+        
+        # Update fourth subplot
+        self._update_line(self.lines[7], mean_time, self.variables["ave_queue_time"])
 
-        for i, line in enumerate(self.lines):
-            x_data = list(line.get_xdata())
-            y_data = list(line.get_ydata())
-            x_data.append(variables[4])  # 假设 variables[4] 是新的x值
-            y_data.append(variables[i])  # 新的y值
-            line.set_xdata(x_data)
-            line.set_ydata(y_data)
 
-            # 获取当前线条对应的坐标轴
-            ax = self.axs[i // 2 + 1, i % 2]
-    
-            # 重新计算坐标轴的限制并自动缩放视图
-            ax.relim()
-            ax.autoscale_view()
-            # 更新表格显示
+
+
+       
         for i in range(2):
             self.axs[0, i].cla()
             self.axs[0, i].axis('off')
@@ -218,6 +271,6 @@ class DynamicPlot:
 
             
         plt.ioff()
-        plt.pause(0.001)  # 使用 plt.draw() 代替 plt.show()
+        plt.pause(0.001)  
 
         

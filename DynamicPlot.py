@@ -178,7 +178,7 @@ class DynamicPlot:
     def initialize_window(self):
         plt.ion()
         self.fig, self.axs = plt.subplots(3, 2, figsize=(10, 8))
-        self.fig.subplots_adjust(top=0.95, hspace=0.3, wspace=0.4)
+        self.fig.subplots_adjust(top=0.99, hspace=0.25, wspace=0.3)
         # 设置表格在弹窗中的位置，并设置初始值
         for i in range(2):
             self.axs[0, i].axis('off')

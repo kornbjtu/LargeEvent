@@ -533,7 +533,7 @@ if __name__ == '__main__':
     #################### SIMULATION SETTINGS ####################
 
     SIM_TIME = 43200 # seconds
-    CONSUMPTION = [1.11, 0.063] #[time_consumption, distance_consumption]
+    CONSUMPTION = [0.001083, 2.05045] #[time_consumption, distance_consumption]
     #################### METRICS SETTINGS #######################
 
 

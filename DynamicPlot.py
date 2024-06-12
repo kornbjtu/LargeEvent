@@ -121,7 +121,7 @@ class DynamicPlot:
 
 
     def get_variables(self, now):
-
+        variables=[]       
         history_cons = self.get_history()
         ing_cons = self.get_ing_cons(now)
         dis_cons = self.get_dis_cons()
@@ -133,7 +133,7 @@ class DynamicPlot:
         waiting_time = ave_waiting_time
         mileage = mile
         
-        # variables = [total_cons, standby_cons, waiting_time, mileage, int(now)]
+        variables = [total_cons, standby_cons, waiting_time, mileage, int(now)]
         return variables
 
     def initialize_window(self):

@@ -178,7 +178,7 @@ class DynamicPlot:
     def initialize_window(self):
         plt.ion()
         self.fig, self.axs = plt.subplots(3, 2, figsize=(10, 8))
-        self.fig.subplots_adjust(top=0.85)
+        self.fig.subplots_adjust(top=0.95, hspace=0.3, wspace=0.4)
         # 设置表格在弹窗中的位置，并设置初始值
         for i in range(2):
             self.axs[0, i].axis('off')
@@ -194,21 +194,38 @@ class DynamicPlot:
                 index = 2 * i + j  # 计算 self.table_data 的索引
                 if index == 0:
                     ax.set_title("Total Consumption", fontsize=8)
-                    self.lines.append(ax.plot([], [], 'r-')[0])  # total_cons, red
-                    self.lines.append(ax.plot([], [], 'b-')[0])  # standby_cons, blue
+                    ax.set_ylabel("(kWh)", fontsize = 8)
+                    total_cons_line = ax.plot([], [], 'r-', label='Total Consumption')
+                    self.lines.append(total_cons_line[0])  # total_cons, red
+                    standby_con_line = ax.plot([], [], 'b-', label = 'Standby Consumption')
+                    self.lines.append(standby_con_line[0])  # standby_cons, blue
+
                 elif index ==1:
                     ax.set_title("Truck In Depot", fontsize=8)
-                    self.lines.append(ax.plot([], [], 'r-')[0])  # truck_in_depot[0], red
-                    self.lines.append(ax.plot([], [], 'g-')[0])  # truck_in_depot[1], green
-                    self.lines.append(ax.plot([], [], 'y-')[0])  # truck_in_depot[2], yellow
-                    self.lines.append(ax.plot([], [], 'k-')[0])  # truck_in_depot[3], black
+                    # ax.set_ylabel("(kWh)", fontsize = 8)
+                    depot_one_line = ax.plot([], [], 'r-', label = 'Depot 1')
+                    self.lines.append(depot_one_line[0])  # truck_in_depot[0], red
+                    depot_two_line = ax.plot([], [], 'g-', label = 'Depot 2')
+                    self.lines.append(depot_two_line[0])  # truck_in_depot[1], green
+                    depot_three_line = ax.plot([], [], 'y-', label = 'Depot 3')
+                    self.lines.append(depot_three_line[0])  # truck_in_depot[2], yellow
+                    depot_four_line = ax.plot([], [], 'k-', label = 'Depot 4')
+                    self.lines.append(depot_four_line[0])  # truck_in_depot[3], black
                 elif index ==2:
                     ax.set_title("Orders' Average Waiting", fontsize=8)
+                    ax.set_ylabel("(s)", fontsize = 8)
                     self.lines.append(ax.plot([], [], 'g-')[0])  # ave_waiting_time, green
                 elif index ==3:
                     ax.set_title("Average Queue Time", fontsize=8)
+                    ax.set_ylabel("(s)", fontsize = 8)
                     self.lines.append(ax.plot([], [], 'k-')[0])  # ave_queue_time, black
-                
+
+                font = {'family': 'serif',
+                        'weight': 'normal',
+                        'size': 6,
+                    }
+                ax.legend(prop = font)
+
          
         plt.show()
 
@@ -268,7 +285,7 @@ class DynamicPlot:
         
         self.update_graph(now)
         
-
+        
             
         plt.ioff()
         plt.pause(0.001)  

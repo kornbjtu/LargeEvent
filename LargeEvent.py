@@ -587,7 +587,7 @@ if __name__ == '__main__':
     OrderGen(event_gen=event_gen)
 
     Visual(vis=Plotter(truck_list=truck_list,
-           depot_list=depot_list, venue_list=VENUES, map=map, order_list=order_list), dynamic_plot=DynamicPlot(truck_list=truck_list, order_list=order_list, complete_times=complete_times, sim_time=SIM_TIME, consumption=CONSUMPTION))
+           depot_list=depot_list, venue_list=VENUES, map=map, order_list=order_list), dynamic_plot=DynamicPlot(truck_list=truck_list,depot_list=depot_list, order_list=order_list, complete_times=complete_times, sim_time=SIM_TIME, consumption=CONSUMPTION))
 
     env.run(till=SIM_TIME)
 

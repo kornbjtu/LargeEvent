@@ -5,17 +5,23 @@ matplotlib.use('TkAgg')
 from LargeEvent import *
 
 class DynamicPlot:
-    def __init__(self, truck_list, order_list, complete_times, sim_time, consumption):
+    def __init__(self, truck_list,depot_list, order_list, complete_times, sim_time, consumption):
 
         self.sim_time = sim_time
-        self.table_data = [["Total Consumption", "0"],
+        self.table_data = [[["Total Consumption", "0"],
                            ["Standby Consumtion", "0"],
                            ["Orders' Average Waiting", "0"],
                            ["Total Mileage", "0"],
-                           ]
-                           
+                           ], [["Total Orders", "0"],
+                           ["Carbon Emission", "0"],
+                           ["Pending Var1", "0"],
+                           ["Pengding Var2", "0"],
+                           ]]
+
+                                   
         self.truck_list: List[Truck] = truck_list
         self.order_list: List[Order] = order_list
+        self.depot_list: List[Depot] = depot_list
         self.complete_times:List[Dict[str, float]] = complete_times
         self.time_cons, self.disp_cons = consumption
         self.lines = []
@@ -23,11 +29,15 @@ class DynamicPlot:
 
         self.all_var =[]
         self.variables: Dict[str, float] = {
-            "total_cons": None,
-            "standby_cons": None,
-            "ave_waiting_time": None,
-            "mileage": None,
-            "mean_time": 0
+            "total_cons": None,     #全场总能耗
+            "standby_cons": None,   #闲置能耗（排队时的能耗）
+            "ave_waiting_time": None,   #每个订单平均等待时间
+            "mileage": None,        #所有truck行驶总里程
+            "mean_time": 0,          #实时时间（用于检索）
+            "truck_in_depot":[],     #每个depot里的truck数量
+            "carbon_emission":None,     #碳排放量
+            "order_number": 0 ,      #订单总数
+            "ave_queue_time": None      #平均排队时间
         }
 
  
@@ -94,6 +104,22 @@ class DynamicPlot:
             mile += truck.get_mile()
         return mile
 
+    def get_truck_in_depot(self):       #每个depot里的truck数量
+        truck_in_depot = []
+        for depot in depot_list:
+            depot_id = depot.id
+            trucks_in_depot = depot.get_truck_instock()
+            truck_in_depot[depot_id] = trucks_in_depot
+
+        return truck_in_depot
+
+
+    def get_order_number(self):
+        order_number = len(order_list)
+        return order_number
+
+
+
     def get_variables(self, now):
 
         history_cons = self.get_history()
@@ -106,7 +132,8 @@ class DynamicPlot:
         standby_cons = standby_cons
         waiting_time = ave_waiting_time
         mileage = mile
-        variables = [total_cons, standby_cons, waiting_time, mileage, int(now)]
+        
+        # variables = [total_cons, standby_cons, waiting_time, mileage, int(now)]
         return variables
 
     def initialize_window(self):
@@ -116,8 +143,9 @@ class DynamicPlot:
         # 设置表格在弹窗中的位置，并设置初始值
         for i in range(2):
             self.axs[0, i].axis('off')
-            table = self.axs[0, i].table(cellText=self.table_data, loc='center', cellLoc='center')
+            table = self.axs[0, i].table(cellText=self.table_data[i], loc='center', cellLoc='center')
             table.scale(1, 2)
+      
 
         # 设置图在弹窗中的位置
         colors = ['r-', 'y-', 'b-', 'g-']
@@ -156,8 +184,8 @@ class DynamicPlot:
         # 更新表格数据
         variables = self.get_variables(now)
         for i in range(4):
-            self.table_data[i][1] = f"{variables[i]:.2f}"
-
+            self.table_data[0][i][1] = f"{variables[i]:.2f}"
+###########################################################################缺少右边数据的更新
         # 更新图表数据
 
         for i, line in enumerate(self.lines):
@@ -178,11 +206,10 @@ class DynamicPlot:
         for i in range(2):
             self.axs[0, i].cla()
             self.axs[0, i].axis('off')
-            table = self.axs[0, i].table(cellText=self.table_data, loc='center', cellLoc='center')
+            table = self.axs[0, i].table(cellText=self.table_data[i], loc='center', cellLoc='center')
             table.scale(1, 2)
-            
 
-   
+ 
 
     def draw_graph(self, now):
         

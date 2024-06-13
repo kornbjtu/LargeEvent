@@ -637,7 +637,7 @@ if __name__ == "__main__":
 
     Visual(vis=Plotter(truck_list=truck_list,
            depot_list=depot_list, venue_list=VENUES, map=map, order_list=order_list), dynamic_plot=DynamicPlot(truck_list=truck_list, order_list=order_list, depot_list=depot_list,
-                                                                                                               complete_times=complete_times, sim_time=SIM_TIME, consumption=[1, 2]),
+                                                                                                               complete_times=complete_times, sim_time=SIM_TIME),
             if_dashboard=params["Visualization Settings"]["Real-time dashboard"], if_vis=params["Visualization Settings"]["Real-time process visualization"])
 
     env.run(till=SIM_TIME)

@@ -6,7 +6,7 @@ import copy
 from DONTUSELargeEvent import *
 
 class DynamicPlot:
-    def __init__(self, truck_list,depot_list, order_list, complete_times, sim_time, consumption):
+    def __init__(self, truck_list,depot_list, order_list, complete_times, sim_time):
 
         self.sim_time = sim_time
         self.table_data = [[["Total Consumption/kwh", "0"],
@@ -25,8 +25,9 @@ class DynamicPlot:
         self.order_list: List[Order] = order_list
         self.depot_list: List[Depot] = depot_list
         self.complete_times:List[Dict[str, float]] = complete_times
-        self.time_cons, self.disp_cons = consumption
-
+        self.time_cons = 0.0
+        self.disp_cons =0.0
+        self.get_cons_para()
         self.fps = 24
         self.lines = []
         self.all_var =[]
@@ -40,9 +41,21 @@ class DynamicPlot:
             "carbon_emission":0.0,     #碳排放量
             "order_number": 0 ,      #订单总数
             "ave_queue_time": 0.0,      #平均排队时间
-            "total_queue_length": 0     #所有depot的排队总长
+            "total_queue_length": 0,     #所有depot的排队总长
+            "service_cons": 0.0         #service center产生的能耗
         }
 
+    def get_cons_para(self):
+        time = 0.0
+        disp = 0.0
+        num = 0
+        for truck in self.truck_list:
+            num+=1
+            t, d = truck.times['factors']
+            time+=t
+            disp+=d
+        self.time_cons = time/num
+        self.disp_cons = disp/num
 
     def clear_variables(self):
         for key in self.variables:
@@ -76,7 +89,8 @@ class DynamicPlot:
             mile = truck.get_mile()
             dis_cons += self.disp_cons * mile
         return dis_cons
-    
+
+
     def get_standby_cons(self, now):#计算总闲置能耗
         standby_cons = 0.0
         for times in self.complete_times:
@@ -86,10 +100,11 @@ class DynamicPlot:
         for truck in self.truck_list:
             active_time = truck.times['to_service_center']
 
-            if truck.get_condition == "serve":
+            if truck.get_condition() == "serve":
                 standby_cons += self.time_cons * (now-active_time)
                 
-            elif truck.get_condition == "delivery":
+            elif truck.get_condition() == "delivery":
+
                 outpot_time = truck.times['start_delivery']
                 standby_cons += self.time_cons * (outpot_time-active_time)
                 
@@ -136,11 +151,37 @@ class DynamicPlot:
             length += depot.service_center.serve_queue.length()
         return length
 
+    def get_ave_queue_time(self):
+        queue_time = 0.0
+        num = 0
+        for times in self.complete_times:
+            active_time = times['to_service_center']
+            start_service_time = times['start_service']
+            queue_time += start_service_time - active_time
+            num+=1
+        for truck in self.truck_list:
+
+            if truck.get_condition() == "delivery":
+
+                active_time = truck.times['to_service_center']
+                start_service_time = truck.times['start_service']
+
+                queue_time += start_service_time - active_time
+                num+=1
+
+        if num == 0:
+            return queue_time
+        else:
+            ave_queue_time = queue_time/num
+            return ave_queue_time
+
+    def get_service_cons(self, now):
+        service_cons = 0.0
+
     def get_variables(self, now):
 
  
         self.clear_variables()
-        new_variables = copy.deepcopy(self.variables)
         history_cons = self.get_history()
         ing_cons = self.get_ing_cons(now)
         dis_cons = self.get_dis_cons()
@@ -152,6 +193,7 @@ class DynamicPlot:
         mile = self.get_mile()
         emission = (history_cons + ing_cons + dis_cons)*0.268
         queue_length = self.get_total_queue_length()
+        ave_queue_time = self.get_ave_queue_time()
 
         self.variables["total_cons"] = history_cons + ing_cons + dis_cons
         self.variables["standby_cons"] = standby_cons
@@ -161,7 +203,9 @@ class DynamicPlot:
         self.variables["truck_in_depot"] = truck_in_depot
         self.variables["order_number"] = order_number
         self.variables["carbon_emission"] = emission
+        self.variables['ave_queue_time'] = ave_queue_time
         self.variables["total_queue_length"] = queue_length
+
         new_variables = copy.deepcopy(self.variables)
         self.all_var.append(new_variables)
 

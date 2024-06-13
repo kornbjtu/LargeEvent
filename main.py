@@ -1,163 +1,174 @@
-import tkinter as tk
-from tkinter import filedialog, IntVar, BooleanVar, StringVar
+import Window
+from LargeEvent import *
+from Graph import *
 import json
 
-def submit():
-    params = {
-        "Distributions Parameters": {
-            "Order generation IAT mean": iat_mean.get(),
-            "Service time mean": service_mean.get(),
-            "Duration mean": duration_mean.get(),
-            "Duration sigma": duration_sigma.get(),
-            "Volume mean": volume_mean.get(),
-            "Volume sigma": volume_sigma.get(),
-            "Venue-related parameters": venue_params_file.get()
-        },
-        "Simulation & KPI-related Settings": {
-            "Simulation time": sim_time.get(),
-            "Energy consumption per second": energy_per_sec.get(),
-            "Energy consumption per meter": energy_per_meter.get(),
-            "Random Seed": random_seed.get(),
-            "Batch run": batch_run.get(),
-            "Run it for": run_times.get() if batch_run.get() else None,
-            "Output file": output_file.get()
-        },
-        "Behavioral Settings": {
-            "Number of Type 1 Truck": type1_trucks.get(),
-            "Number of Type 2 Truck": type2_trucks.get(),
-            "Number of Type 3 Truck": type3_trucks.get(),
-            "Number of Type 4 Truck": type4_trucks.get(),
-            "Map": map_file.get(),
-            "Start delivery threshold": start_threshold.get(),
-            "Maximum waiting time": max_waiting.get(),
-            "Truck parameters": truck_params_file.get()
-        },
-        "Visualization Settings": {
-            "Real-time dashboard": real_time_dashboard.get(),
-            "Real-time process visualization": real_time_visualization.get()
-        }
+
+
+##########################################################
+#                                                        #
+#                   UTENSILS FUNCTION                    #
+#                                                        #
+##########################################################
+def draw_without_replacement(items):
+    result = []
+    while items:
+        choice = random.choice(items)
+        items.remove(choice)
+        result.append(choice)
+    return result
+
+
+if __name__ == "__main__":
+
+
+
+
+    ############## GET USER-DEFINED PARAMS ###########
+
+    params = Window.get_simulation_params()
+    print(params)
+
+
+
+    ############## GRAPH SETTING ###################
+
+    # 1. Graph generation
+    data_file = params["Behavioral Settings"]["Map"]
+
+    # road setting
+
+    # Road type, True: expressway, False: Cityway
+    ROAD_SL = {True: params["Behavioral Settings"]["Speed on Motorway"], 
+               False: params["Behavioral Settings"]["Speed on City Street"]}
+
+    map: Graph = init_graph(data_file, ROAD_SL)
+
+    # read each nodes
+
+    DEPOT_LIST = map.get_type_nodes("Depot")  # all the nodes which are depots
+
+    ORDER_DES_LIST = map.get_type_nodes("Order_dest")
+
+    ##################### DISTRIBUTION ###################
+    SERVE_TIME_DIS = sim.Exponential(mean=m2s(params["Distributions Parameters"]["Service time mean"]))
+
+    GAP_DIST = sim.Exponential(m2s(params["Distributions Parameters"]["Order generation IAT mean"]))  # 订单生成时间的分布
+
+    DURATION_DIST = sim.Normal(h2s(params["Distributions Parameters"]["Event Duration Shift mean"]), params["Distributions Parameters"]["Event Duration Shift sigma"])  # event持续时间的
+
+    VOLUME_DIST = sim.Uniform(params["Distributions Parameters"]["Voloume mean"], params["Distributions Parameters"]["Volume sigma"])  # 订单生成的load的分布
+
+    DEPOT_DIST = {}  # table density for order generation's depot
+    DEST_DIST = {}  # table density for order generation's dedstination
+
+    for node in ORDER_DES_LIST:
+        DEST_DIST[node.id] = 1.0 / len(ORDER_DES_LIST)  # 每个节点的概率均等
+
+    for depot_node in DEPOT_LIST:
+        DEPOT_DIST[depot_node] = 1.0 / len(DEPOT_LIST)
+
+    ############# VENUE SETTING #################
+
+    # read venue settings
+
+    with open(params["Behavioral Settings"]["Venue-related parameters"]) as file: general_params = json.load(file)
+
+    VENUES = []
+
+    for venue in general_params["venues"]:
+        VENUES.append(Venue(node=map.node(venue["Node"]), 
+                            start_time=h2s(venue["StartTime"]), 
+                            duration=DURATION_DIST.sample() + venue["Duration"], 
+                            event_scale=venue["Scale"], 
+                            influence_road=[map.get_road(1, x) for x in venue["AffectedNodes"]], 
+                            affected_node=[map.node(x) for x in venue["AffectedNodes"]]))
+    # 一天按12小时算总共43200s
+   
+
+    TRANS_MAT = general_params["TransMat"]
+
+    CONG_LEVELS = general_params["CongLevel"]
+    CONG_FACTORS = {int(key): item for key, item in general_params["CongFactor"]}
+
+    ##################### DEPOT parameters ####################
+
+    # we assume each depot has exactly only 5 vehicles
+    NUM_TRUCK_TYPES = {
+                0: params["Behavioral Settings"]["Number of Ritsch Truck"],
+                1: params["Behavioral Settings"]["Number of Dongfeng Truck"],
+                2: params["Behavioral Settings"]["Number of Isuzu Truck"],
+                3: params["Behavioral Settings"]["Number of Volvo Truck"],
     }
-    print(json.dumps(params, indent=4))
-    root.destroy()
 
-def toggle_batch_run():
-    if batch_run.get():
-        run_times_label.grid(row=13, column=1, sticky='w')
-        run_times_entry.grid(row=13, column=2)
-    else:
-        run_times_label.grid_forget()
-        run_times_entry.grid_forget()
+    
 
-root = tk.Tk()
-root.title("Simulation Parameters")
+    NUM_DEPOT = len(DEPOT_LIST)
 
-def create_section(title, row):
-    tk.Label(root, text=title, font=("Helvetica", 16)).grid(row=row, column=0, columnspan=3, sticky='w')
-    tk.Canvas(root, height=2, bd=0, highlightthickness=0, bg="#d3d3d3").grid(row=row+1, column=0, columnspan=3, sticky='we')
+    TRIGGER_VOLUME = 20
 
-# Distributions Parameters
-create_section("Distributions Parameters", 0)
-tk.Label(root, text="Order generation IAT mean (minutes):", anchor="w").grid(row=2, column=0, sticky='w')
-iat_mean = tk.DoubleVar()
-tk.Entry(root, textvariable=iat_mean).grid(row=2, column=1, columnspan=2, sticky='w')
+    MAX_WAIT_TIME = m2s(30)
 
-tk.Label(root, text="Service time mean (minutes):", anchor="w").grid(row=3, column=0, sticky='w')
-service_mean = tk.DoubleVar()
-tk.Entry(root, textvariable=service_mean).grid(row=3, column=1, columnspan=2, sticky='w')
+    #################### SIMULATION SETTINGS ####################
 
-tk.Label(root, text="Duration mean (minutes):", anchor="w").grid(row=4, column=0, sticky='w')
-duration_mean = tk.DoubleVar()
-tk.Entry(root, textvariable=duration_mean).grid(row=4, column=1, sticky='w')
-tk.Label(root, text="sigma:", anchor="w").grid(row=4, column=2, sticky='w')
-duration_sigma = tk.DoubleVar()
-tk.Entry(root, textvariable=duration_sigma).grid(row=4, column=3, sticky='w')
+    SIM_TIME = 43200 # seconds
+    CONSUMPTION = [1.11, 0.063] #[time_consumption, distance_consumption]
+    #################### METRICS SETTINGS #######################
 
-tk.Label(root, text="Volume mean (minutes):", anchor="w").grid(row=5, column=0, sticky='w')
-volume_mean = tk.DoubleVar()
-tk.Entry(root, textvariable=volume_mean).grid(row=5, column=1, sticky='w')
-tk.Label(root, text="sigma:", anchor="w").grid(row=5, column=2, sticky='w')
-volume_sigma = tk.DoubleVar()
-tk.Entry(root, textvariable=volume_sigma).grid(row=5, column=3, sticky='w')
 
-tk.Label(root, text="Venue-related parameters file:", anchor="w").grid(row=6, column=0, sticky='w')
-venue_params_file = StringVar()
-tk.Entry(root, textvariable=venue_params_file).grid(row=6, column=1, sticky='w')
-tk.Button(root, text="Browse", command=lambda: venue_params_file.set(filedialog.askopenfilename())).grid(row=6, column=2)
+    ##################################################
+    ##              MAIN LINE                       ##
+    ##################################################
 
-# Simulation & KPI-related Settings
-create_section("Simulation & KPI-related Settings", 7)
-tk.Label(root, text="Simulation time (hours):", anchor="w").grid(row=9, column=0, sticky='w')
-sim_time = tk.DoubleVar()
-tk.Entry(root, textvariable=sim_time).grid(row=9, column=1, columnspan=2, sticky='w')
+    env = sim.Environment()
 
-tk.Label(root, text="Energy consumption per second (kWh/s):", anchor="w").grid(row=10, column=0, sticky='w')
-energy_per_sec = tk.DoubleVar()
-tk.Entry(root, textvariable=energy_per_sec).grid(row=10, column=1, columnspan=2, sticky='w')
+    ################ INITIALIZATION #################
 
-tk.Label(root, text="Energy consumption per meter (kWh/m):", anchor="w").grid(row=11, column=0, sticky='w')
-energy_per_meter = tk.DoubleVar()
-tk.Entry(root, textvariable=energy_per_meter).grid(row=11, column=1, columnspan=2, sticky='w')
+    # 1. Generators Initiation
 
-tk.Label(root, text="Random Seed:", anchor="w").grid(row=12, column=0, sticky='w')
-random_seed = tk.IntVar()
-tk.Entry(root, textvariable=random_seed).grid(row=12, column=1, columnspan=2, sticky='w')
+    # Information Initialization
 
-batch_run = BooleanVar()
-tk.Checkbutton(root, text="Batch run?", variable=batch_run, command=toggle_batch_run).grid(row=13, column=0, sticky='w')
-run_times_label = tk.Label(root, text="Run it for (times):", anchor="w")
-run_times = tk.IntVar()
-run_times_entry = tk.Entry(root, textvariable=run_times)
+    truck_list = []
+    depot_list = []
+    order_list = []
+    complete_times = [] # this list is to store the time spent that completes the tour. After one tour, the data in the truck will be cleaned.
 
-tk.Label(root, text="Output file:", anchor="w").grid(row=14, column=0, sticky='w')
-output_file = StringVar()
-tk.Entry(root, textvariable=output_file).grid(row=14, column=1, sticky='w')
-tk.Button(root, text="Browse", command=lambda: output_file.set(filedialog.asksaveasfilename(defaultextension=".csv"))).grid(row=14, column=2)
+    # dictionary of depot_id to depot
 
-# Behavioral Settings
-create_section("Behavioral Settings", 15)
-tk.Label(root, text="Number of Type 1 Truck:", anchor="w").grid(row=17, column=0, sticky='w')
-type1_trucks = tk.IntVar()
-tk.Entry(root, textvariable=type1_trucks).grid(row=17, column=1, columnspan=2, sticky='w')
+    DEPOTS = {}
 
-tk.Label(root, text="Number of Type 2 Truck:", anchor="w").grid(row=18, column=0, sticky='w')
-type2_trucks = tk.IntVar()
-tk.Entry(root, textvariable=type2_trucks).grid(row=18, column=1, columnspan=2, sticky='w')
+    for ind in range(len(DEPOT_LIST)):
 
-tk.Label(root, text="Number of Type 3 Truck:", anchor="w").grid(row=19, column=0, sticky='w')
-type3_trucks = tk.IntVar()
-tk.Entry(root, textvariable=type3_trucks).grid(row=19, column=1, columnspan=2, sticky='w')
+        depot = Depot(id=ind, node=DEPOT_LIST[ind], max_order=TRIGGER_VOLUME,
+                      capacity=0, serve_time_dist=SERVE_TIME_DIS, serve_queue=sim.Queue(), max_wait_time=MAX_WAIT_TIME, order_list=[], truck_list=truck_list)
 
-tk.Label(root, text="Number of Type 4 Truck:", anchor="w").grid(row=20, column=0, sticky='w')
-type4_trucks = tk.IntVar()
-tk.Entry(root, textvariable=type4_trucks).grid(row=20, column=1, columnspan=2, sticky='w')
+        depot_list.append(depot)
 
-tk.Label(root, text="Map file:", anchor="w").grid(row=21, column=0, sticky='w')
-map_file = StringVar()
-tk.Entry(root, textvariable=map_file).grid(row=21, column=1, sticky='w')
-tk.Button(root, text="Browse", command=lambda: map_file.set(filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx")]))).grid(row=21, column=2)
+        DEPOTS[depot.node] = depot
 
-tk.Label(root, text="Start delivery threshold (volume unit):", anchor="w").grid(row=22, column=0, sticky='w')
-start_threshold = tk.DoubleVar()
-tk.Entry(root, textvariable=start_threshold).grid(row=22, column=1, columnspan=2, sticky='w')
+    for ind in range(NUM_TRUCK):
+        # Assign depot in a round-robin manner
+        assigned_depot = depot_list[ind % NUM_DEPOT]
+        truck_list.append(Truck(id=ind, order_list=[], act_time=None,
+                          depot=assigned_depot, depot_list=depot_list))
 
-tk.Label(root, text="Maximum waiting time (minutes):", anchor="w").grid(row=23, column=0, sticky='w')
-max_waiting = tk.DoubleVar()
-tk.Entry(root, textvariable=max_waiting).grid(row=23, column=1, columnspan=2, sticky='w')
+    ###### generate event ########
 
-tk.Label(root, text="Truck parameters file:", anchor="w").grid(row=24, column=0, sticky='w')
-truck_params_file = StringVar()
-tk.Entry(root, textvariable=truck_params_file).grid(row=24, column=1, sticky='w')
-tk.Button(root, text="Browse", command=lambda: truck_params_file.set(filedialog.askopenfilename())).grid(row=24, column=2)
+    event_gen = LargeEventGen()
 
-# Visualization Settings
-create_section("Visualization Settings", 25)
-real_time_dashboard = BooleanVar()
-tk.Checkbutton(root, text="Real-time dashboard", variable=real_time_dashboard).grid(row=27, column=0, sticky='w')
+    ###### place order generators on each node #######
 
-real_time_visualization = BooleanVar()
-tk.Checkbutton(root, text="Real-time process visualization", variable=real_time_visualization).grid(row=27, column=1, sticky='w')
+    OrderGen(event_gen=event_gen)
 
-# Submit Button
-tk.Button(root, text="Submit", command=submit).grid(row=28, column=0, columnspan=3)
+    Visual(vis=Plotter(truck_list=truck_list,
+           depot_list=depot_list, venue_list=VENUES, map=map, order_list=order_list), dynamic_plot=DynamicPlot(truck_list=truck_list, order_list=order_list, complete_times=complete_times, sim_time=SIM_TIME, consumption=CONSUMPTION))
 
-root.mainloop()
+    env.run(till=SIM_TIME)
+
+    #################### 3 STATISTICS ###################
+
+    # print()
+    # for d in depot_list:
+    #     d.service_center.serve_queue.print_statistics()
+    # print(truck_list[4].get_truck_pos())
+

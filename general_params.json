@@ -1,0 +1,94 @@
+{
+    "venues": [
+        {
+            "Name": 1,
+            "Node": 1,
+            "StartTime": 3,
+            "Scale": 2,
+            "AffectedNodes": [33, 20],
+            "Duration": 2
+        },
+
+        {
+            "Name": 2,
+            "Node": 2,
+            "StartTime": 6,
+            "Scale": 3,
+            "AffectedNodes": [22, 21],
+            "Duration": 3
+        },
+
+        {
+            "Name": 3,
+            "Node": 3,
+            "StartTime": 9,
+            "Scale": 1,
+            "AffectedNodes": [23, 24, 25, 26],
+            "Duration": 2
+        },
+
+        {
+            "Name": 4,
+            "Node": 4,
+            "StartTime": 6,
+            "Scale": 4,
+            "AffectedNodes": [27, 28],
+            "Duration": 2
+        },
+
+        {
+            "Name": 5,
+            "Node": 5,
+            "StartTime": 6.5,
+            "Scale": 5,
+            "AffectedNodes": [29, 30],
+            "Duration": 4
+        }
+
+    ],
+
+    "TransMat": [
+        [1,     0,     0,      0,      0,      0],
+        [0,     0.9,   0.1,    0,      0,      0],
+        [0,     0.1,   0.8,    0.1,    0,      0],
+        [0,     0,     0.1,    0.8,    0.1,    0],
+        [0,     0,     0,      0.1,    0.8,    0.1],
+        [0,     0,     0,      0,      0.1,    0.9]
+    ],
+
+    "CongLevel": [0, 1, 2, 3, 4, 5],
+    "CongFactor": {"0": 1, "1": 1.05, "2": 1.15, "3": 1.25, "4": 1.35, "5": 1.45},
+
+    "TruckProfiles": [
+        {
+            "Name": "Ritsch",
+            "EneCon": 0.22,
+            "Price": 27384
+        },
+
+        {
+            "Name": "Dongfeng",
+            "EneCon": 0.25,
+            "Price": 23966
+        },
+
+        {
+            "Name": "Isuzu",
+            "EneCon": 0.63,
+            "Price": 17928
+        },
+
+        {
+            "Name": "Volvo",
+            "EneCon": 2.25,
+            "Price": 10906
+        }
+
+
+    ]
+
+    
+
+
+
+}

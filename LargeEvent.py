@@ -456,7 +456,7 @@ if __name__ == '__main__':
 
     GAP_DIST = sim.Uniform(m2s(0.5), m2s(1))  # 订单生成时间的分布
 
-    DURATION_DIST = sim.Uniform(h2s(0.5), h2s(1.5))  # event持续时间的
+    DURATION_DIST = sim.Uniform(h2s(0.5), h2s(1.5))  # event持续时间的偏移
 
     VOLUME_DIST = sim.Uniform(1, 4)  # 订单生成的load的分布
 
@@ -566,7 +566,7 @@ if __name__ == '__main__':
     for ind in range(len(DEPOT_LIST)):
 
         depot = Depot(id=ind, node=DEPOT_LIST[ind], max_order=TRIGGER_VOLUME,
-                      capacity=0, serve_time_dist=SERVE_TIME_DIS, serve_queue=sim.Queue(), max_wait_time=MAX_WAIT_TIME, order_list=[], truck_list=truck_list)
+                    capacity=0, serve_time_dist=SERVE_TIME_DIS, serve_queue=sim.Queue(), max_wait_time=MAX_WAIT_TIME, order_list=[], truck_list=truck_list)
 
         depot_list.append(depot)
 
@@ -576,7 +576,7 @@ if __name__ == '__main__':
         # Assign depot in a round-robin manner
         assigned_depot = depot_list[ind % NUM_DEPOT]
         truck_list.append(Truck(id=ind, order_list=[], act_time=None,
-                          depot=assigned_depot, depot_list=depot_list))
+                        depot=assigned_depot, depot_list=depot_list))
 
     ###### generate event ########
 
@@ -587,7 +587,7 @@ if __name__ == '__main__':
     OrderGen(event_gen=event_gen)
 
     Visual(vis=Plotter(truck_list=truck_list,
-           depot_list=depot_list, venue_list=VENUES, map=map, order_list=order_list), dynamic_plot=DynamicPlot(truck_list=truck_list,depot_list=depot_list, order_list=order_list, complete_times=complete_times, sim_time=SIM_TIME, consumption=CONSUMPTION))
+        depot_list=depot_list, venue_list=VENUES, map=map, order_list=order_list), dynamic_plot=DynamicPlot(truck_list=truck_list,depot_list=depot_list, order_list=order_list, complete_times=complete_times, sim_time=SIM_TIME, consumption=CONSUMPTION))
 
     env.run(till=SIM_TIME)
 
@@ -597,3 +597,5 @@ if __name__ == '__main__':
     # for d in depot_list:
     #     d.service_center.serve_queue.print_statistics()
     # print(truck_list[4].get_truck_pos())
+
+

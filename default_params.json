@@ -1,0 +1,36 @@
+{
+    "Distributions Parameters": {
+        "Order generation IAT mean": 1.0, 
+        "Service time mean": 10,
+        "Event Duration Shift mean": 1,
+        "Event Duration Shift sigma": 0.5,
+        "Volume mean": 3,
+        "Volume sigma": 1,
+        "Venue-related parameters": "general_params.json"
+    },
+    "Simulation & KPI-related Settings": {
+        "Simulation time": 43200,
+        "Energy consumption per second": 1.11,
+        "Energy consumption per meter": 0.063,
+        "Random Seed": 123456,
+        "Batch run": false,
+        "Run it for": null,
+        "Output file": "output/output.csv"
+    },
+    "Behavioral Settings": {
+        "Number of Ritsch Truck": 5,
+        "Number of Dongfeng Truck": 5,
+        "Number of Isuzu Truck": 5,
+        "Number of Volvo Truck": 5,
+        "Map": "node_matrix.xlsx",
+        "Start delivery threshold": 20,
+        "Maximum waiting time": 30,
+        "Speed on Motorway": 60,
+        "Speed on City Street": 30,
+        "Truck parameters": "general_params.json"
+    },
+    "Visualization Settings": {
+        "Real-time dashboard": true,
+        "Real-time process visualization": true
+    }
+}

@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('TkAgg')
 
-from LargeEvent import *
+from DONTUSELargeEvent import *
 
 class DynamicPlot:
     def __init__(self, truck_list,depot_list, order_list, complete_times, sim_time, consumption):
@@ -281,12 +281,7 @@ class DynamicPlot:
 
  
 
-    def draw_graph(self, now):
-        
-        self.update_graph(now)
-        
-        
-            
+    def draw_graph(self):   
         plt.ioff()
         plt.pause(0.001)  
 

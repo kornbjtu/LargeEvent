@@ -62,33 +62,35 @@
     "TruckProfiles": [
         {
             "Name": "Ritsch",
-            "EneCon": 0.22,
+            "EneConMile": 0.22,
+            "EneConTime": 0.001083,
             "Price": 27384
         },
 
         {
             "Name": "Dongfeng",
-            "EneCon": 0.25,
+            "EneConMile": 0.25,
+            "EneConTime": 0.001083,
             "Price": 23966
         },
 
         {
             "Name": "Isuzu",
-            "EneCon": 0.63,
+            "EneConMile": 0.63,
+            "EneConTime": 0.001083,
             "Price": 17928
         },
 
         {
             "Name": "Volvo",
-            "EneCon": 2.25,
+            "EneConMile": 2.25,
+            "EneConTime": 0.001083,
             "Price": 10906
         }
 
 
-    ]
+    ],
 
+    "ExtraEneServe": 0
     
-
-
-
 }

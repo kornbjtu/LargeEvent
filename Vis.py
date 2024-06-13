@@ -2,13 +2,13 @@ import cv2
 import numpy as np
 from Graph import *
 import time
-from LargeEvent import *
+from DONTUSELargeEvent import *
 
 
 class Plotter:
     def __init__(self, truck_list, depot_list, venue_list, map, order_list):
         self.canvas = np.zeros((700, 700, 3), dtype=np.uint8)
-        self.fps = 120
+        self.fps = 200
         self.truck_color = ((255, 0, 255))  # truck: purple
         self.depot_color = ((0, 255, 255))  # depot: yellow
         # self.venue_color = ((255, 0, 0))        #event venue: blue

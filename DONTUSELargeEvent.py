@@ -10,6 +10,7 @@ import random
 from Vis import *
 from DynamicPlot import *
 
+
 ################################## DATA CLASS ##########################################
 
 
@@ -27,6 +28,7 @@ class Venue:
     initial : int = 0
     map: Graph = map
     prev_cong_level : int = 0
+
 @dataclass
 class Order:
     generation_time: float  # generation time
@@ -42,11 +44,11 @@ class Order:
 
 
 class Depot(sim.Component, AbstractDepot):
-    def setup(self, id, node, max_order, capacity, serve_time_dist, serve_queue, max_wait_time, order_list, truck_list) -> None:
+    def setup(self, id, node, max_order, capacity, serve_time_dist, serve_queue, max_wait_time, order_list, truck_list, extra_energy) -> None:
         AbstractDepot.__init__(self, id, node, max_order, capacity,
                                serve_time_dist, serve_queue, max_wait_time, order_list, truck_list)
         self.service_center = ServiceCenter(
-            capacity=capacity, serve_time_dist=serve_time_dist, serve_queue=serve_queue, depot=self)
+            capacity=capacity, serve_time_dist=serve_time_dist, serve_queue=serve_queue, depot=self, extra_energy=extra_energy)
 
     def get_truck_instock(self):
         return [truck for truck in self.truck_list if truck.depot == self]
@@ -107,7 +109,7 @@ class Depot(sim.Component, AbstractDepot):
 
 
 class Truck(sim.Component, AbstractTruck):
-    def setup(self, id, order_list, act_time, depot, depot_list):
+    def setup(self, id, order_list, act_time, depot, depot_list, consumption):
         AbstractTruck.__init__(self, id, order_list,
                                act_time, depot, depot_list)
 
@@ -115,6 +117,15 @@ class Truck(sim.Component, AbstractTruck):
         self.path: None | List[Node] = None
         self.travel_time: None | float = None
         self.departure_time: None | float = None
+        self.consumption: List[float] = consumption # [time_consumption, distance_consumption]
+
+        self.times: Dict[str, float] = {
+            "start_delivery": None,
+            "to_service_center": None,
+            "in_depot": None,
+            "start_service": None,
+            "factors": self.consumption
+        }
 
     def in_queue(self):
         self.times["to_service_center"] = env.now()
@@ -207,7 +218,9 @@ class Truck(sim.Component, AbstractTruck):
         self.times = {
             "start_delivery": None,
             "to_service_center": None,
-            "in_depot": None
+            "in_depot": None,
+            "start_service": None,
+            "factors": self.consumption
         }
 
     def __update_truck_state(self, path, travel_time, departure_time):
@@ -266,10 +279,15 @@ class Truck(sim.Component, AbstractTruck):
 
 
 class ServiceCenter(sim.Component, AbstractServiceCenter):
-    def setup(self, capacity, serve_time_dist, serve_queue, depot):
+    def setup(self, capacity, serve_time_dist, serve_queue, depot, extra_energy):
         AbstractServiceCenter.__init__(
             self, capacity, serve_time_dist, serve_queue, depot)
         self.active_trucks = []  # 当前正在服务的卡车列表
+        
+
+        #### data ####
+        self.extra_energy = extra_energy
+
 
     def process(self):
         while True:
@@ -278,6 +296,7 @@ class ServiceCenter(sim.Component, AbstractServiceCenter):
             self.truck = self.serve_queue.pop()
             self.active_trucks.append(self.truck)
             service_time = self.serve_time_dist.sample()  # 使用分布生成服务时间
+            self.truck.times["start_service"] = env.now()
             self.hold(service_time)
             self.truck.activate(process='deliver')
             self.active_trucks.remove(self.truck)
@@ -286,12 +305,12 @@ class ServiceCenter(sim.Component, AbstractServiceCenter):
 
 
 class LargeEventGen(sim.Component):
-    def setup(self):
-        self.venue: List[Venue] = VENUES
-        self.trans_mat: List[List[float]] = TRANS_MAT
-        self.cong_levels: List[int] = CONG_LEVELS
-        self.cong_factors: Dict[int, float] = CONG_FACTORS
-        self.stage_duration: int =  STAGE_DURATION
+    def setup(self, venues, trans_mat, cong_levels, cong_factors, stage_duration):
+        self.venue: List[Venue] = venues
+        self.trans_mat: List[List[float]] = trans_mat
+        self.cong_levels: List[int] = cong_levels
+        self.cong_factors: Dict[int, float] = cong_factors
+        self.stage_duration: int =  stage_duration
         
     def gen_cong_level(self, venue: Venue) -> int:
         scale_index = venue.event_scale
@@ -336,14 +355,15 @@ class LargeEventGen(sim.Component):
             self.hold(1)  # 每单位时间检查一次
 
 
+
 class OrderGen(sim.Component):
-    def setup(self, event_gen: LargeEventGen):
-        self.original_dest_dist: Dict[int, float] = DEST_DIST
-        self.gap_dist: sim.Distribution = GAP_DIST
-        self.depot_dist: Dict[Depot, float] = DEPOT_DIST
+    def setup(self, event_gen: LargeEventGen, dest_dist, depot_dist, volume_dist, gap_dist):
+        self.original_dest_dist: Dict[int, float] = dest_dist
+        self.gap_dist: sim.Distribution = gap_dist
+        self.depot_dist: Dict[Depot, float] = depot_dist
         self.event_gen: LargeEventGen = event_gen
-        self.dest_dist: Dict[int, float] = DEST_DIST
-        self.volume_dist = sim.Distrubtion = VOLUME_DIST
+        self.dest_dist: Dict[int, float] = dest_dist
+        self.volume_dist: sim.Distrubtion = volume_dist
 
     def process(self):
         while True:
@@ -361,7 +381,7 @@ class OrderGen(sim.Component):
             generation_time = env.now()
 
             # generate volume
-            volume = self.volume_dist.sample()
+            volume = np.abs(self.volume_dist.sample())
 
             # 生成订单
             order = Order(generation_time=generation_time, complete_time=None, destination=destination, volume=volume, depot=depot, is_complete=False)
@@ -412,9 +432,12 @@ class Visual(sim.Component):
         self.dp: DynamicPlot = dynamic_plot
 
     def process(self):
+        self.dp.initialize_window()
         while True:
             self.vis.draw_canvas(env.now())
-            # self.dp.draw_graph(env.now())
+            
+            if env.now() % 100 == 0:
+                self.dp.draw_graph(env.now())
 
             # it always runs at the first priority in each event time.
             self.hold(duration=1, priority=1)
@@ -451,7 +474,7 @@ if __name__ == '__main__':
 
     GAP_DIST = sim.Uniform(m2s(0.5), m2s(1))  # 订单生成时间的分布
 
-    DURATION_DIST = sim.Uniform(h2s(0.5), h2s(0.6))  # event持续时间的
+    DURATION_DIST = sim.Uniform(h2s(0.5), h2s(1.5))  # event持续时间的偏移
 
     VOLUME_DIST = sim.Uniform(1, 4)  # 订单生成的load的分布
 
@@ -463,9 +486,6 @@ if __name__ == '__main__':
 
     for depot_node in DEPOT_LIST:
         DEPOT_DIST[depot_node] = 1.0 / len(DEPOT_LIST)
-
-    
-
 
     ############# VENUE SETTING #################
     AFFECT_ROAD = {
@@ -483,11 +503,7 @@ if __name__ == '__main__':
     #     4: [map.node(27), map.node(28), map.node(15)],
     #     5: [map.node(29), map.node(30), map.node(11), map.node(12), map.node(13)]
     # }
-    STAGE_DURATION = 100  # 每个阶段持续时间
-
-
-
-
+    STAGE_DURATION = m2s(20)  # 每个阶段持续时间
     ORDER_AFFECT_NODE = {
     1: [map.node(33), map.node(20)],
     2: [map.node(22), map.node(21)],
@@ -498,15 +514,15 @@ if __name__ == '__main__':
 
     # 一天按12小时算总共43200s
     VENUES = [
-        Venue(node=map.node(1), start_time=100, duration=DURATION_DIST.sample(
+        Venue(node=map.node(1), start_time=h2s(3), duration=DURATION_DIST.sample(
         ), event_scale=2, influence_road=AFFECT_ROAD[1], affected_node=ORDER_AFFECT_NODE[1]),
-        Venue(node=map.node(2), start_time=200, duration=DURATION_DIST.sample(
+        Venue(node=map.node(2), start_time=h2s(6), duration=DURATION_DIST.sample(
         ), event_scale=3, influence_road=AFFECT_ROAD[2], affected_node=ORDER_AFFECT_NODE[2]),
-        Venue(node=map.node(3), start_time=300, duration=DURATION_DIST.sample(
+        Venue(node=map.node(3), start_time=h2s(9), duration=DURATION_DIST.sample(
         ), event_scale=1, influence_road=AFFECT_ROAD[3], affected_node=ORDER_AFFECT_NODE[3]),
         Venue(node=map.node(4), start_time=h2s(6), duration=DURATION_DIST.sample(
         ), event_scale=4, influence_road=AFFECT_ROAD[4], affected_node=ORDER_AFFECT_NODE[4]),
-        Venue(node=map.node(5), start_time=h2s(8.5), duration=DURATION_DIST.sample(
+        Venue(node=map.node(5), start_time=h2s(6.5), duration=DURATION_DIST.sample(
         ), event_scale=5, influence_road=AFFECT_ROAD[5], affected_node=ORDER_AFFECT_NODE[5])
     ]
 
@@ -522,8 +538,6 @@ if __name__ == '__main__':
     CONG_LEVELS = [0, 1, 2, 3, 4, 5]
     CONG_FACTORS = {0: 1, 1: 1.05, 2: 1.15, 3: 1.25, 4: 1.35, 5: 1.45}
 
-
-            
     ##################### DEPOT parameters ####################
 
     # we assume each depot has exactly only 5 vehicles
@@ -534,10 +548,10 @@ if __name__ == '__main__':
 
     MAX_WAIT_TIME = m2s(30)
 
-    #################### SIMULATION SETTINGS ###################
+    #################### SIMULATION SETTINGS ####################
 
     SIM_TIME = 43200 # seconds
-    CONSUMPTION = [1.11, 0.063] #[time_consumption, distance_consumption]
+    CONSUMPTION = [0.001083, 2.05045] #[time_consumption, distance_consumption]
     #################### METRICS SETTINGS #######################
 
 
@@ -570,7 +584,7 @@ if __name__ == '__main__':
     for ind in range(len(DEPOT_LIST)):
 
         depot = Depot(id=ind, node=DEPOT_LIST[ind], max_order=TRIGGER_VOLUME,
-                      capacity=0, serve_time_dist=SERVE_TIME_DIS, serve_queue=sim.Queue(), max_wait_time=MAX_WAIT_TIME, order_list=[], truck_list=truck_list)
+                    capacity=0, serve_time_dist=SERVE_TIME_DIS, serve_queue=sim.Queue(), max_wait_time=MAX_WAIT_TIME, order_list=[], truck_list=truck_list, extra_energy=0)
 
         depot_list.append(depot)
 
@@ -580,7 +594,7 @@ if __name__ == '__main__':
         # Assign depot in a round-robin manner
         assigned_depot = depot_list[ind % NUM_DEPOT]
         truck_list.append(Truck(id=ind, order_list=[], act_time=None,
-                          depot=assigned_depot, depot_list=depot_list))
+                        depot=assigned_depot, depot_list=depot_list, consumption=CONSUMPTION))
 
     ###### generate event ########
 
@@ -591,7 +605,7 @@ if __name__ == '__main__':
     OrderGen(event_gen=event_gen)
 
     Visual(vis=Plotter(truck_list=truck_list,
-           depot_list=depot_list, venue_list=VENUES, map=map, order_list=order_list), dynamic_plot=DynamicPlot(truck_list=truck_list, order_list=order_list, complete_times=complete_times, sim_time=SIM_TIME, consumption=CONSUMPTION))
+        depot_list=depot_list, venue_list=VENUES, map=map, order_list=order_list), dynamic_plot=DynamicPlot(truck_list=truck_list,depot_list=depot_list, order_list=order_list, complete_times=complete_times, sim_time=SIM_TIME, consumption=CONSUMPTION))
 
     env.run(till=SIM_TIME)
 
@@ -601,3 +615,5 @@ if __name__ == '__main__':
     # for d in depot_list:
     #     d.service_center.serve_queue.print_statistics()
     # print(truck_list[4].get_truck_pos())
+
+

@@ -441,10 +441,27 @@ class Visual(sim.Component):
             self.dp.initialize_window()
 
         while True:
+
+            # when program is terminated:
+            if env.now() == SIM_TIME:
+
+                # save data
+                # 调用函数并生成CSV文件
+                Window.convert_data_to_csv(self.dp.all_var, 'output.csv')
+                
+                # pop up message box
+                if self.if_dashboard or self.if_vis:
+                    Window.show_completion_dialog()
+
+                
+                
+
+            # track data
+            self.dp.get_variables(env.now())
     
             if self.if_dashboard:
             
-                self.dp.update_graph(env.now())
+                self.dp.update_graph()
 
                 if env.now() % 100 == 0:
                     self.dp.draw_graph()
@@ -454,6 +471,9 @@ class Visual(sim.Component):
 
             # it always runs at the first priority in each event time.
             self.hold(duration=1, priority=1)
+
+            
+                
 
 
 ##########################################################
@@ -466,6 +486,9 @@ class Visual(sim.Component):
 def h2s(x): return x * 60 * 60  # convert hours to seconds
 
 def m2s(x): return x * 60  # convert minutes to seconds
+
+def save_data(): 
+    pass
 
 
 if __name__ == "__main__":

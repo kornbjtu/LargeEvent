@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import filedialog, IntVar, BooleanVar, StringVar, DoubleVar, messagebox
 import json
+import sys
+import csv
 
 def get_simulation_params():
     params = {}
@@ -254,3 +256,51 @@ def get_simulation_params():
     root.mainloop()
     
     return params
+
+
+
+def show_completion_dialog():
+    def on_closing():
+        messagebox.showinfo("Program Complete", "The program has finished running.")
+        root.destroy()
+        sys.exit()  # 终止整个程序
+
+    root = tk.Tk()
+    root.withdraw()  # Hide the root window
+
+    # Show the completion message box
+    on_closing()
+
+    root.mainloop()
+
+
+
+
+def convert_data_to_csv(data, output_filename):
+    # 定义CSV文件的字段名
+    fieldnames = ['total_cons', 'standby_cons', 'ave_waiting_time', 'mileage', 'mean_time',
+                  'truck_in_depot_0', 'truck_in_depot_1', 'truck_in_depot_2', 'truck_in_depot_3', 'truck_in_depot_4',
+                  'carbon_emission', 'order_number', 'ave_queue_time', 'total_queue_length']
+
+    # 写入CSV文件
+    with open(output_filename, 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+        writer.writeheader()
+        for row in data:
+            # 检查是否存在 'truck_in_depot' 键
+            if 'truck_in_depot' in row:
+                # 提取 'truck_in_depot' 中每个元组的后面那个数字，并分离成5个不同的字段
+                for i in range(5):
+                    row[f'truck_in_depot_{i}'] = row['truck_in_depot'][i][1] if i < len(row['truck_in_depot']) else 0
+                # 删除原始的 'truck_in_depot' 字段
+                del row['truck_in_depot']
+            else:
+                # 如果不存在 'truck_in_depot' 键，则初始化为0
+                for i in range(5):
+                    row[f'truck_in_depot_{i}'] = 0
+
+            writer.writerow(row)
+
+
+

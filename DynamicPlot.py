@@ -240,10 +240,9 @@ class DynamicPlot:
         ax.relim()
         ax.autoscale_view()
 
-    def update_graph(self, now):
+    def update_graph(self):
 
         # 更新表格数据
-        self.get_variables(now)
         self.table_data[0][0][1] = f"{self.variables['total_cons']:.2f}"
         self.table_data[0][1][1] = f"{self.variables['standby_cons']:.2f}"
         self.table_data[0][2][1] = f"{self.variables['ave_waiting_time']:.2f}"

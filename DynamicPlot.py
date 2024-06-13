@@ -31,7 +31,7 @@ class DynamicPlot:
         self.all_var =[]
         self.variables: Dict[str, float] = {
             "total_cons": 0.0,     #全场总能耗
-            "standby_cons": 0.0,   #闲置能耗（排队时的能耗）
+            "standby_cons": 0.0,   #闲置能耗（排队&service时的能耗）
             "ave_waiting_time": 0.0,   #每个订单平均等待时间
             "mileage": 0.0,        #所有truck行驶总里程
             "mean_time": 0,          #实时时间（用于检索）

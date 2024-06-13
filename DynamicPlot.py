@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('TkAgg')
+import copy
 
 from DONTUSELargeEvent import *
 
@@ -137,9 +138,9 @@ class DynamicPlot:
 
     def get_variables(self, now):
 
-        # variables=[]   
+ 
         self.clear_variables()
-
+        new_variables = copy.deepcopy(self.variables)
         history_cons = self.get_history()
         ing_cons = self.get_ing_cons(now)
         dis_cons = self.get_dis_cons()
@@ -161,7 +162,8 @@ class DynamicPlot:
         self.variables["order_number"] = order_number
         self.variables["carbon_emission"] = emission
         self.variables["total_queue_length"] = queue_length
-        self.all_var.append(self.variables)
+        new_variables = copy.deepcopy(self.variables)
+        self.all_var.append(new_variables)
 
         
         # variables = [total_cons, standby_cons, waiting_time, mileage, int(now)]

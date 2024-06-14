@@ -91,7 +91,7 @@ class Plotter:
     def animate_depots(self):
         for depot in self.all_depots:
             cv2.putText(self.canvas, str(depot.id), self.trans(
-                    depot.node.x-5, depot.node.y-5), self.font, 0.5, (255, 255, 255), 1)
+                    depot.node.x+5, depot.node.y-5), self.font, 0.5, (0, 255, 255), 1)
             for i in range(depot.service_center.serve_queue.length()):
                 # 计算每个长方形的位置
                 position_x = depot.node.x-5 + (self.rect_width + self.gap) * i

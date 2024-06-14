@@ -27,6 +27,7 @@ class DynamicPlot:
         self.complete_times:List[Dict[str, float]] = complete_times
         self.service_center_time_con = 0.0
         self.get_cons_para()
+        self.time_window = time_window
 
         self.fps = 24
         self.lines = []
@@ -42,21 +43,12 @@ class DynamicPlot:
             "order_number": 0 ,      #订单总数
             "ave_queue_time": 0.0,      #平均排队时间
             "total_queue_length": 0,     #所有depot的排队总长
-            "service_cons": 0.0         #service center产生的能耗
-            
+            "service_cons": 0.0,         #service center产生的能耗
+            "time_window_ave_queue_time":0.0  ,    #带time window的平均排队时间（按完成排队时间统计）
+            "time_window_ave_waiting_time":0.0      #带time window的order平均等待时间
         }
 
     def get_cons_para(self):
-        # time = 0.0
-        # disp = 0.0
-        # num = 0
-        # for truck in self.truck_list:
-        #     num+=1
-        #     t, d = truck.times['factors']
-        #     time+=t
-        #     disp+=d
-        # self.time_cons = time/num
-        # self.disp_cons = disp/num
         num = 0
         stime = 0.0
         for depot in self.depot_list:
@@ -203,8 +195,42 @@ class DynamicPlot:
         service_cons = service_time * self.service_center_time_con
         return service_cons
 
+    def get_tw_ave_queue_time(self, now):       #每趟车平均排队时间with time window
+        queue_time = 0.0
+        num = 0
+        for times in self.complete_times:
+            active_time = times['to_service_center']
+            start_service_time = times['start_service']
+            if start_service_time + self.time_window >= now:
+                queue_time += start_service_time - active_time
+                num+=1
+        for truck in self.truck_list:
+
+            if truck.get_condition() == "delivery":
+
+                active_time = truck.times['to_service_center']
+                start_service_time = truck.times['start_service']
+                if start_service_time + self.time_window >= now:
+                    queue_time += start_service_time - active_time
+                    num+=1
+
+        if num == 0:
+            return queue_time
+        else:
+            ave_queue_time = queue_time/num
+            return ave_queue_time
         
-        
+    def get_tw_ave_waiting_time(self,now):#计算已经完成的订单的平均等待的时间with time window
+        waiting_time = 0.0
+        num = 0
+        ave_waiting_time = 0.0
+        for order in self.order_list:
+            if order.is_complete == True and order.complete_time + self.time_window >= now:
+                waiting_time += order.complete_time - order.generation_time
+                num+=1
+            if num>0:
+                ave_waiting_time = waiting_time/num
+        return ave_waiting_time
 
     def get_variables(self, now):
 
@@ -223,6 +249,8 @@ class DynamicPlot:
         queue_length = self.get_total_queue_length()
         ave_queue_time = self.get_ave_queue_time()
         service_cons = self.get_service_cons(now)
+        time_window_ave_queue_time = self.get_tw_ave_queue_time(now)
+        time_window_ave_waiting_time = self.get_tw_ave_waiting_time(now)
 
         self.variables["total_cons"] = history_cons + ing_cons + dis_cons+service_cons
         self.variables["standby_cons"] = standby_cons
@@ -235,6 +263,9 @@ class DynamicPlot:
         self.variables['ave_queue_time'] = ave_queue_time
         self.variables["total_queue_length"] = queue_length
         self.variables["service_cons"] = service_cons
+        self.variables["time_window_ave_queue_time"] = time_window_ave_queue_time
+        self.variables["time_window_ave_waiting_time"] = time_window_ave_waiting_time
+        
         new_variables = copy.deepcopy(self.variables)
         self.all_var.append(new_variables)
 
@@ -287,11 +318,11 @@ class DynamicPlot:
                     depot_four_line = ax.plot([], [], 'k-', label = 'Depot 4')
                     self.lines.append(depot_four_line[0])  # truck_in_depot[3], black
                 elif index ==2:
-                    ax.set_title("Orders' Average Waiting", fontsize=8)
+                    ax.set_title("Orders' Average Waiting in TW", fontsize=8)
                     ax.set_ylabel("(s)", fontsize = 8)
                     self.lines.append(ax.plot([], [], 'g-')[0])  # ave_waiting_time, green
                 elif index ==3:
-                    ax.set_title("Average Queue Time", fontsize=8)
+                    ax.set_title("Average Queue Time in TW", fontsize=8)
                     ax.set_ylabel("(s)", fontsize = 8)
                     self.lines.append(ax.plot([], [], 'k-')[0])  # ave_queue_time, black
 
@@ -338,10 +369,10 @@ class DynamicPlot:
             self._update_line(self.lines[2 + i], mean_time, self.variables['truck_in_depot'][i][1])
         
         # Update third subplot
-        self._update_line(self.lines[6], mean_time, self.variables['ave_waiting_time'])
+        self._update_line(self.lines[6], mean_time, self.variables['time_window_ave_queue_time'])
         
         # Update fourth subplot
-        self._update_line(self.lines[7], mean_time, self.variables["ave_queue_time"])
+        self._update_line(self.lines[7], mean_time, self.variables["time_window_ave_waiting_time"])
 
 
 

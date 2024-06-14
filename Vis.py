@@ -92,6 +92,22 @@ class Plotter:
         for depot in self.all_depots:
             cv2.putText(self.canvas, str(depot.id+1), self.trans(
                     depot.node.x+5, depot.node.y-5), self.font, 0.5, (0, 255, 255), 1)
+            v = 0.0
+            for order in depot.order_list:
+                v+=order.volume
+            volume = int(v)
+            if depot.id == 0:
+                 cv2.putText(self.canvas, str(volume), self.trans(
+                    depot.node.x-5, depot.node.y+5), self.font, 0.5, (0, 0, 255), 1)
+            elif depot.id == 1:
+                cv2.putText(self.canvas, str(volume), self.trans(
+                    depot.node.x-5, depot.node.y), self.font, 0.5, (0, 0, 255), 1)
+            elif depot.id == 2:
+                cv2.putText(self.canvas, str(volume), self.trans(
+                    depot.node.x+5, depot.node.y), self.font, 0.5, (0, 0, 255), 1)
+            else:
+                cv2.putText(self.canvas, str(volume), self.trans(
+                    depot.node.x, depot.node.y-5), self.font, 0.5, (0, 0, 255), 1)
             for i in range(depot.service_center.serve_queue.length()):
                 # 计算每个长方形的位置
                 position_x = depot.node.x-5 + (self.rect_width + self.gap) * i

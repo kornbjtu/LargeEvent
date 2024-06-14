@@ -337,6 +337,8 @@ class DynamicPlot:
         self.table_data[1][3][1] = f"{self.variables['total_queue_length']:.2f}"
 
 
+
+
         # 更新图表数据
         mean_time = self.variables['mean_time']
         self._update_line(self.lines[0], mean_time, self.variables['total_cons'])
@@ -347,10 +349,10 @@ class DynamicPlot:
             self._update_line(self.lines[2 + i], mean_time, self.variables['truck_in_depot'][i][1])
         
         # Update third subplot
-        self._update_line(self.lines[6], mean_time, self.variables['time_window_ave_queue_time'])
+        self._update_line(self.lines[6], mean_time, self.variables["time_window_ave_waiting_time"])
         
         # Update fourth subplot
-        self._update_line(self.lines[7], mean_time, self.variables["time_window_ave_waiting_time"])
+        self._update_line(self.lines[7], mean_time, self.variables['time_window_ave_queue_time'])
 
 
 

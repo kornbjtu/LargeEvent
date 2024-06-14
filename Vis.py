@@ -90,7 +90,7 @@ class Plotter:
 
     def animate_depots(self):
         for depot in self.all_depots:
-            cv2.putText(self.canvas, str(depot.id), self.trans(
+            cv2.putText(self.canvas, str(depot.id+1), self.trans(
                     depot.node.x+5, depot.node.y-5), self.font, 0.5, (0, 255, 255), 1)
             for i in range(depot.service_center.serve_queue.length()):
                 # 计算每个长方形的位置
@@ -167,12 +167,12 @@ class Plotter:
                 if order.destination == ordergenerator.id:
                     if abs(order.generation_time - now) <= 12:
                         state['color'] = self.generate_order_color
-                        state['reset_time'] = now + 50
+                        state['reset_time'] = now + 30
                         state['display_text'] = 'green'
                         break
                     elif order.is_complete == True and abs(order.complete_time - now) <= 12:
                         state['color'] = self.complete_order_color
-                        state['reset_time'] = now + 50
+                        state['reset_time'] = now + 30
                         state['display_text'] = 'red'
                         break
 

@@ -25,8 +25,7 @@ class DynamicPlot:
         self.order_list: List[Order] = order_list
         self.depot_list: List[Depot] = depot_list
         self.complete_times:List[Dict[str, float]] = complete_times
-        self.service_center_time_con = 0.0
-        self.get_cons_para()
+        
         self.time_window = time_window
 
         self.fps = 24
@@ -47,16 +46,6 @@ class DynamicPlot:
             "time_window_ave_queue_time":0.0  ,    #带time window的平均排队时间（按完成排队时间统计）
             "time_window_ave_waiting_time":0.0      #带time window的order平均等待时间
         }
-
-    def get_cons_para(self):
-        num = 0
-        stime = 0.0
-        for depot in self.depot_list:
-            num+=1
-            st = depot.service_center.extra_energy
-            stime +=st
-        self.service_center_time_con = stime/num
-
 
     def clear_variables(self):
         for key in self.variables:
@@ -94,7 +83,6 @@ class DynamicPlot:
             dis_cons += disp_cons * mile
         return dis_cons
 
-
     def get_standby_cons(self, now):#计算总闲置能耗
         standby_cons = 0.0
         for times in self.complete_times:
@@ -128,7 +116,6 @@ class DynamicPlot:
                 ave_waiting_time = waiting_time/num
         return ave_waiting_time
 
-
     def get_mile(self):#计算总里程
         mile = 0.0
         for truck in self.truck_list:
@@ -144,7 +131,6 @@ class DynamicPlot:
             truck_in_depot.append((depot_id, truck_num))
 
         return truck_in_depot
-
 
     def get_order_number(self):     #订单数量
         order_number = len(self.order_list)
@@ -180,19 +166,12 @@ class DynamicPlot:
             ave_queue_time = queue_time/num
             return ave_queue_time
 
-    def get_service_cons(self, now):        #service center的能耗
+    def get_service_cons(self):        #service center的能耗
         service_time = 0.0
         service_cons = 0.0
-        for times in self.complete_times:
-            outpot_time = times["start_delivery"]
-            start_service_time = times['start_service']
-            service_time += outpot_time - start_service_time
-        for truck in self.truck_list:
-            if truck.get_condition() == "serve" and truck.times["to_service_center"] and truck.times["start_service"] and truck.times["start_service"]>=truck.times["to_service_center"] :
-                service_time += now-truck.times["start_service"]
-            elif truck.get_condition() == "delivery":
-                service_time += truck.times["start_delivery"] - truck.times["start_service"]
-        service_cons = service_time * self.service_center_time_con
+        for depot in self.depot_list:
+            service_time += depot.service_center.get_service_time()
+            service_cons = service_time * depot.service_center.extra_energy
         return service_cons
 
     def get_tw_ave_queue_time(self, now):       #每趟车平均排队时间with time window
@@ -248,7 +227,7 @@ class DynamicPlot:
         emission = (history_cons + ing_cons + dis_cons)*0.268
         queue_length = self.get_total_queue_length()
         ave_queue_time = self.get_ave_queue_time()
-        service_cons = self.get_service_cons(now)
+        service_cons = self.get_service_cons()
         time_window_ave_queue_time = self.get_tw_ave_queue_time(now)
         time_window_ave_waiting_time = self.get_tw_ave_waiting_time(now)
 
@@ -270,8 +249,7 @@ class DynamicPlot:
         self.all_var.append(new_variables)
 
         
-        # variables = [total_cons, standby_cons, waiting_time, mileage, int(now)]
-        # return variables
+
     def take_var(self, time:int):
         for variables in self.all_var:
             if time == variables["mean_time"]:

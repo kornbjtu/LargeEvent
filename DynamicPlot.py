@@ -43,7 +43,7 @@ class DynamicPlot:
             "ave_queue_time": 0.0,      #平均排队时间
             "total_queue_length": 0,     #所有depot的排队总长
             "service_cons": 0.0         #service center产生的能耗
-            ""
+            
         }
 
     def get_cons_para(self):

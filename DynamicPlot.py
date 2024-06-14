@@ -6,7 +6,7 @@ import copy
 from DONTUSELargeEvent import *
 
 class DynamicPlot:
-    def __init__(self, truck_list,depot_list, order_list, complete_times, sim_time):
+    def __init__(self, truck_list,depot_list, order_list, complete_times, sim_time, time_window = 3600):
 
         self.sim_time = sim_time
         self.table_data = [[["Total Consumption/kwh", "0"],
@@ -25,10 +25,9 @@ class DynamicPlot:
         self.order_list: List[Order] = order_list
         self.depot_list: List[Depot] = depot_list
         self.complete_times:List[Dict[str, float]] = complete_times
-        self.time_cons = 0.0
-        self.disp_cons =0.0
-        self.get_cons_para()
         self.service_center_time_con = 0.0
+        self.get_cons_para()
+
         self.fps = 24
         self.lines = []
         self.all_var =[]
@@ -44,19 +43,20 @@ class DynamicPlot:
             "ave_queue_time": 0.0,      #平均排队时间
             "total_queue_length": 0,     #所有depot的排队总长
             "service_cons": 0.0         #service center产生的能耗
+            ""
         }
 
     def get_cons_para(self):
-        time = 0.0
-        disp = 0.0
-        num = 0
-        for truck in self.truck_list:
-            num+=1
-            t, d = truck.times['factors']
-            time+=t
-            disp+=d
-        self.time_cons = time/num
-        self.disp_cons = disp/num
+        # time = 0.0
+        # disp = 0.0
+        # num = 0
+        # for truck in self.truck_list:
+        #     num+=1
+        #     t, d = truck.times['factors']
+        #     time+=t
+        #     disp+=d
+        # self.time_cons = time/num
+        # self.disp_cons = disp/num
         num = 0
         stime = 0.0
         for depot in self.depot_list:
@@ -81,22 +81,25 @@ class DynamicPlot:
         for times in self.complete_times:
             active_time = times['to_service_center']
             inpot_time = times['in_depot']
-            history_con += self.time_cons * (inpot_time-active_time)
+            time_cons, disp_cons = times['factors']
+            history_con += time_cons * (inpot_time-active_time)
         return history_con
 
     def get_ing_cons(self, now):#计算正在进行中的时间能耗
         ing_cons = 0.0
         for truck in self.truck_list:
             active_time = truck.times['to_service_center']
+            time_cons, disp_cons = truck.times['factors']
             if truck.get_condition() == "serve" or truck.get_condition() == "delivery":
-                ing_cons+=(now-active_time) * self.time_cons
+                ing_cons+=(now-active_time) * time_cons
         return ing_cons
     
     def get_dis_cons(self): #计算距离能耗
         dis_cons = 0.0
         for truck in self.truck_list:
             mile = truck.get_mile()
-            dis_cons += self.disp_cons * mile
+            time_cons, disp_cons = truck.times['factors']
+            dis_cons += disp_cons * mile
         return dis_cons
 
 
@@ -105,17 +108,18 @@ class DynamicPlot:
         for times in self.complete_times:
             active_time = times['to_service_center']
             outpot_time = times['start_delivery']
-            standby_cons += self.time_cons * (outpot_time - active_time)
+            time_cons, disp_cons = times['factors']
+            standby_cons += time_cons * (outpot_time - active_time)
         for truck in self.truck_list:
             active_time = truck.times['to_service_center']
-
+            time_cons, disp_cons = truck.times['factors']
             if truck.get_condition() == "serve":
-                standby_cons += self.time_cons * (now-active_time)
+                standby_cons += time_cons * (now-active_time)
                 
             elif truck.get_condition() == "delivery":
 
                 outpot_time = truck.times['start_delivery']
-                standby_cons += self.time_cons * (outpot_time-active_time)
+                standby_cons += time_cons * (outpot_time-active_time)
                 
 
         return standby_cons
@@ -150,17 +154,17 @@ class DynamicPlot:
         return truck_in_depot
 
 
-    def get_order_number(self):
+    def get_order_number(self):     #订单数量
         order_number = len(self.order_list)
         return order_number
 
-    def get_total_queue_length(self):
+    def get_total_queue_length(self):       #总排队长度
         length = 0
         for depot in self.depot_list:
             length += depot.service_center.serve_queue.length()
         return length
 
-    def get_ave_queue_time(self):
+    def get_ave_queue_time(self):       #每趟车平均排队时间
         queue_time = 0.0
         num = 0
         for times in self.complete_times:
@@ -184,7 +188,7 @@ class DynamicPlot:
             ave_queue_time = queue_time/num
             return ave_queue_time
 
-    def get_service_cons(self, now):
+    def get_service_cons(self, now):        #service center的能耗
         service_time = 0.0
         service_cons = 0.0
         for times in self.complete_times:

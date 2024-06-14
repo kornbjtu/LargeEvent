@@ -28,6 +28,7 @@ class DynamicPlot:
         self.time_cons = 0.0
         self.disp_cons =0.0
         self.get_cons_para()
+        self.service_center_time_con = 0.0
         self.fps = 24
         self.lines = []
         self.all_var =[]
@@ -56,6 +57,14 @@ class DynamicPlot:
             disp+=d
         self.time_cons = time/num
         self.disp_cons = disp/num
+        num = 0
+        stime = 0.0
+        for depot in self.depot_list:
+            num+=1
+            st = depot.service_center.extra_energy
+            stime +=st
+        self.service_center_time_con = stime/num
+
 
     def clear_variables(self):
         for key in self.variables:
@@ -176,7 +185,22 @@ class DynamicPlot:
             return ave_queue_time
 
     def get_service_cons(self, now):
+        service_time = 0.0
         service_cons = 0.0
+        for times in self.complete_times:
+            outpot_time = times["start_delivery"]
+            start_service_time = times['start_service']
+            service_time += outpot_time - start_service_time
+        for truck in self.truck_list:
+            if truck.get_condition() == "serve" and truck.times["to_service_center"] and truck.times["start_service"] and truck.times["start_service"]>=truck.times["to_service_center"] :
+                service_time += now-truck.times["start_service"]
+            elif truck.get_condition() == "delivery":
+                service_time += truck.times["start_delivery"] - truck.times["start_service"]
+        service_cons = service_time * self.service_center_time_con
+        return service_cons
+
+        
+        
 
     def get_variables(self, now):
 
@@ -194,8 +218,9 @@ class DynamicPlot:
         emission = (history_cons + ing_cons + dis_cons)*0.268
         queue_length = self.get_total_queue_length()
         ave_queue_time = self.get_ave_queue_time()
+        service_cons = self.get_service_cons(now)
 
-        self.variables["total_cons"] = history_cons + ing_cons + dis_cons
+        self.variables["total_cons"] = history_cons + ing_cons + dis_cons+service_cons
         self.variables["standby_cons"] = standby_cons
         self.variables["ave_waiting_time"] = ave_waiting_time
         self.variables["mileage"] = mile
@@ -205,7 +230,7 @@ class DynamicPlot:
         self.variables["carbon_emission"] = emission
         self.variables['ave_queue_time'] = ave_queue_time
         self.variables["total_queue_length"] = queue_length
-
+        self.variables["service_cons"] = service_cons
         new_variables = copy.deepcopy(self.variables)
         self.all_var.append(new_variables)
 

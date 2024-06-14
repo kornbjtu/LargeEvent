@@ -291,6 +291,7 @@ class ServiceCenter(sim.Component, AbstractServiceCenter):
 
         #### data ####
         self.extra_energy = extra_energy
+        self.total_service_time = 0
 
 
     def process(self):
@@ -302,10 +303,14 @@ class ServiceCenter(sim.Component, AbstractServiceCenter):
             service_time = self.serve_time_dist.sample()  # 使用分布生成服务时间
             self.truck.times["start_service"] = env.now()
             self.hold(service_time)
+            self.total_service_time += service_time # update total service time
             self.truck.activate(process='deliver')
             self.active_trucks.remove(self.truck)
             if len(self.serve_queue) > 0:
                 self.activate()
+    
+    def get_service_time(self):
+        return self.total_service_time
 
 
 class LargeEventGen(sim.Component):
@@ -637,7 +642,7 @@ if __name__ == "__main__":
 
     Visual(vis=Plotter(truck_list=truck_list,
            depot_list=depot_list, venue_list=VENUES, map=map, order_list=order_list), dynamic_plot=DynamicPlot(truck_list=truck_list, order_list=order_list, depot_list=depot_list,
-                                                                                                               complete_times=complete_times, sim_time=SIM_TIME),
+                                                                                                               complete_times=complete_times, sim_time=SIM_TIME, time_window=params["Visualization Settings"]["Average time window"]),
             if_dashboard=params["Visualization Settings"]["Real-time dashboard"], if_vis=params["Visualization Settings"]["Real-time process visualization"])
 
     env.run(till=SIM_TIME)

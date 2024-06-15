@@ -283,7 +283,7 @@ def convert_data_to_csv(data, output_filename):
     # 定义CSV文件的字段名
     fieldnames = ['total_cons', 'standby_cons', 'ave_waiting_time', 'mileage', 'mean_time',
                   'truck_in_depot_0', 'truck_in_depot_1', 'truck_in_depot_2', 'truck_in_depot_3', 'truck_in_depot_4',
-                  'carbon_emission', 'order_number', 'ave_queue_time', 'total_queue_length']
+                  'carbon_emission', 'order_number', 'ave_queue_time', 'total_queue_length', 'service_cons', 'time_window_ave_queue_time', 'time_window_ave_waiting_time']
 
     # 写入CSV文件
     with open(output_filename, 'w', newline='') as csvfile:

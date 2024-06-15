@@ -1,7 +1,7 @@
 {
     "Distributions Parameters": {
-        "Order generation IAT mean": 1.0, 
-        "Service time mean": 10,
+        "Order generation IAT mean": 2.0, 
+        "Service time mean": 6.2,
         "Event Duration Shift mean": 1,
         "Event Duration Shift sigma": 0.5,
         "Volume mean": 3,
@@ -25,8 +25,8 @@
         "Map": "node_matrix.xlsx",
         "Start delivery threshold": 20,
         "Maximum waiting time": 30,
-        "Speed on Motorway": 60,
-        "Speed on City Street": 30,
+        "Speed on Motorway": 130,
+        "Speed on City Street": 50,
         "Truck parameters": "general_params.json"
     },
     "Visualization Settings": {

@@ -444,13 +444,8 @@ class Visual(sim.Component):
     def process(self):
         if self.if_dashboard:
             self.dp.initialize_window()
-        
-        last = []
 
         while True:
-            assert len(complete_times) >= len(last)
-            last = complete_times 
-            
 
             # when program is terminated:
             if env.now() == SIM_TIME:

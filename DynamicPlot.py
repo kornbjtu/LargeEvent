@@ -44,7 +44,9 @@ class DynamicPlot:
             "total_queue_length": 0,     #所有depot的排队总长
             "service_cons": 0.0,         #service center产生的能耗
             "time_window_ave_queue_time":0.0  ,    #带time window的平均排队时间（按完成排队时间统计）
-            "time_window_ave_waiting_time":0.0      #带time window的order平均等待时间
+            "time_window_ave_waiting_time":0.0  ,    #带time window的order平均等待时间
+            "unfinished_order":[],       #每个depot里积压的订单数，[depot_id, unfinished_order]
+            "truck_total_undelivery_time": 0.0  #实时所有车的非运输时长
         }
 
     def clear_variables(self):
@@ -55,6 +57,12 @@ class DynamicPlot:
                 self.variables[key] = []
             else:
                 self.variables[key] = 0.0
+
+    def truck_num(self):
+        num = 0
+        for truck in self.truck_list:
+            num+=1
+        return num
 
 ##############计算函数
     def get_history(self):#计算已经完成的车辆的时间能耗
@@ -211,6 +219,31 @@ class DynamicPlot:
                 ave_waiting_time = waiting_time/num
         return ave_waiting_time
 
+    def get_unfinished_order(self):
+        unfinished_order = []
+        for depot in self.depot_list:
+            volume = 0.0
+            id = depot.id
+            for order in depot.order_list:
+                volume+=order.volume
+            unfinished_order.append((id, volume))
+        return unfinished_order
+
+    def get_total_undelivery_time(self, now):
+        num = self.truck_num()
+        total_time = now * num
+        delivery_time = 0.0
+        undelivery_time = 0.0
+        for times in self.complete_times:
+            output_time = times["start_delivery"]
+            inpot_time = times["in_depot"]
+            delivery_time+=inpot_time-output_time
+        for truck in self.truck_list:
+            if truck.get_condition() == "delivery":
+                delivery_time+=now-truck.times["start_delivery"]
+        undelivery_time = total_time-delivery_time
+        return undelivery_time
+
     def get_variables(self, now):
 
  
@@ -224,12 +257,16 @@ class DynamicPlot:
         truck_in_depot = self.get_truck_in_depot()
         order_number = self.get_order_number()
         mile = self.get_mile()
-        emission = (history_cons + ing_cons + dis_cons) * 0.268
+        
         queue_length = self.get_total_queue_length()
         ave_queue_time = self.get_ave_queue_time()
         service_cons = self.get_service_cons()
+        emission = (history_cons + ing_cons + dis_cons + service_cons) * 0.268
         time_window_ave_queue_time = self.get_tw_ave_queue_time(now)
         time_window_ave_waiting_time = self.get_tw_ave_waiting_time(now)
+        unfinished_order = []
+        unfinished_order = self.get_unfinished_order()
+        undelivery_time = self.get_total_undelivery_time(now)
 
         self.variables["total_cons"] = history_cons + ing_cons + dis_cons+service_cons
         self.variables["standby_cons"] = standby_cons
@@ -244,6 +281,8 @@ class DynamicPlot:
         self.variables["service_cons"] = service_cons
         self.variables["time_window_ave_queue_time"] = time_window_ave_queue_time
         self.variables["time_window_ave_waiting_time"] = time_window_ave_waiting_time
+        self.variables["unfinished_order"] = unfinished_order
+        self.variables["truck_total_undelivery_time"] = undelivery_time
         
         new_variables = copy.deepcopy(self.variables)
         self.all_var.append(new_variables)

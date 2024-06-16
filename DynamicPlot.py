@@ -46,8 +46,8 @@ class DynamicPlot:
             "time_window_ave_queue_time":0.0  ,    #带time window的平均排队时间（按完成排队时间统计）
             "time_window_ave_waiting_time":0.0  ,    #带time window的order平均等待时间
             "unfinished_order":[],       #每个depot里积压的订单数，[depot_id, unfinished_order]
-            "truck_total_undelivery_time": 0.0  #实时所有车的非运输时长
-            
+            "truck_total_time": [] , #实时所有车的时长结果, [parking_time, queue_time, service_time, delivery_time]
+            "time_window_truck_total_time":[]      #带time window实时所有车的时长结果, [parking_time, queue_time, service_time, delivery_time]（按active time统计）
         }
 
     def clear_variables(self):
@@ -65,6 +65,24 @@ class DynamicPlot:
             num+=1
         return num
 
+    def truck_condition(self,truck):
+        active_time = truck.times["to_service_center"]
+        start_service_time = truck.times["start_service"]
+        output_time = truck.times["start_delivery"]
+        inpot_time = truck.times["in_depot"]
+        if active_time and (start_service_time==None or active_time > start_service_time):
+            return 0        #means truck is in the queue
+        elif start_service_time and (output_time==None or start_service_time>output_time):
+            return 1        #means truck is serving
+        elif output_time and (inpot_time==None or output_time>inpot_time):
+            return 2        #means truck is delivering
+        else:
+            return 3        #means truck is parking and passive
+
+
+
+
+
 ##############计算函数
     def get_history(self):#计算已经完成的车辆的时间能耗
         history_con = 0.0
@@ -80,7 +98,7 @@ class DynamicPlot:
         for truck in self.truck_list:
             active_time = truck.times['to_service_center']
             time_cons, disp_cons = truck.times['factors']
-            if truck.get_condition() == "serve" or truck.get_condition() == "delivery":
+            if self.truck_condition(truck)==1 or self.truck_condition(truck)==2:
                 ing_cons+=(now-active_time) * time_cons
         return ing_cons
     
@@ -102,10 +120,10 @@ class DynamicPlot:
         for truck in self.truck_list:
             active_time = truck.times['to_service_center']
             time_cons, disp_cons = truck.times['factors']
-            if truck.get_condition() == "serve":
+            if self.truck_condition(truck) == 1:
                 standby_cons += time_cons * (now-active_time)
                 
-            elif truck.get_condition() == "delivery":
+            elif self.truck_condition(truck) == 2:
 
                 outpot_time = truck.times['start_delivery']
                 standby_cons += time_cons * (outpot_time-active_time)
@@ -160,15 +178,12 @@ class DynamicPlot:
             queue_time += start_service_time - active_time
             num+=1
         for truck in self.truck_list:
-
-            if truck.get_condition() == "delivery":
-
-                active_time = truck.times['to_service_center']
-                start_service_time = truck.times['start_service']
-
+            active_time = truck.times['to_service_center']
+            start_service_time = truck.times['start_service']
+            if self.truck_condition(truck) == 2 or self.truck_condition(truck) == 1:
                 queue_time += start_service_time - active_time
                 num+=1
-
+            
         if num == 0:
             return queue_time
         else:
@@ -194,7 +209,7 @@ class DynamicPlot:
                 num+=1
         for truck in self.truck_list:
 
-            if truck.get_condition() == "delivery":
+            if self.truck_condition(truck) == 2:
 
                 active_time = truck.times['to_service_center']
                 start_service_time = truck.times['start_service']
@@ -230,20 +245,75 @@ class DynamicPlot:
             unfinished_order.append((id, volume))
         return unfinished_order
 
-    def get_total_undelivery_time(self, now):
+    def get_total_time(self, now):
         num = self.truck_num()
+
         total_time = now * num
         delivery_time = 0.0
-        undelivery_time = 0.0
+        parking_time = 0.0
+        queue_time = 0.0
+        service_time = 0.0
         for times in self.complete_times:
+            active_time = times["to_service_center"]
+            start_service_time = times["start_service"]
             output_time = times["start_delivery"]
             inpot_time = times["in_depot"]
             delivery_time+=inpot_time-output_time
+            queue_time+=start_service_time-active_time
+            service_time+=output_time-start_service_time
         for truck in self.truck_list:
-            if truck.get_condition() == "delivery":
-                delivery_time+=now-truck.times["start_delivery"]
-        undelivery_time = total_time-delivery_time
-        return undelivery_time
+            active_time = truck.times["to_service_center"]
+            start_service_time = truck.times["start_service"]
+            output_time = truck.times["start_delivery"]
+            inpot_time = truck.times["in_depot"]
+            if self.truck_condition(truck) == 0:
+                queue_time+=now-active_time
+            elif self.truck_condition(truck) == 1:
+                queue_time += start_service_time-active_time
+                service_time += now-start_service_time
+            elif self.truck_condition(truck) == 2:
+                queue_time += start_service_time-active_time
+                service_time += output_time-start_service_time
+                delivery_time += now-output_time
+        parking_time = total_time-delivery_time-queue_time-service_time
+        truck_time = [parking_time, queue_time, service_time, delivery_time]
+        return truck_time
+
+    def get_tw_total_time(self, now):
+        num = self.truck_num()
+
+        total_time = now * num if now<self.time_window else self.time_window*num
+        delivery_time = 0.0
+        parking_time = 0.0
+        queue_time = 0.0
+        service_time = 0.0
+        for times in self.complete_times:
+            active_time = times["to_service_center"]
+            start_service_time = times["start_service"]
+            output_time = times["start_delivery"]
+            inpot_time = times["in_depot"]
+            if active_time+self.time_window>=now:
+                delivery_time+=inpot_time-output_time
+                queue_time+=start_service_time-active_time
+                service_time+=output_time-start_service_time
+        for truck in self.truck_list:
+            active_time = truck.times["to_service_center"]
+            start_service_time = truck.times["start_service"]
+            output_time = truck.times["start_delivery"]
+            inpot_time = truck.times["in_depot"]
+            if active_time+self.time_window>=now:
+                if self.truck_condition(truck) == 0:
+                    queue_time+=now-active_time
+                elif self.truck_condition(truck) == 1:
+                    queue_time += start_service_time-active_time
+                    service_time += now-start_service_time
+                elif self.truck_condition(truck) == 2:
+                    queue_time += start_service_time-active_time
+                    service_time += output_time-start_service_time
+                    delivery_time += now-output_time
+        parking_time = total_time-delivery_time-queue_time-service_time
+        truck_time = [parking_time, queue_time, service_time, delivery_time]
+        return truck_time
 
     def get_variables(self, now):
 
@@ -258,7 +328,6 @@ class DynamicPlot:
         truck_in_depot = self.get_truck_in_depot()
         order_number = self.get_order_number()
         mile = self.get_mile()
-        
         queue_length = self.get_total_queue_length()
         ave_queue_time = self.get_ave_queue_time()
         service_cons = self.get_service_cons()
@@ -267,7 +336,10 @@ class DynamicPlot:
         time_window_ave_waiting_time = self.get_tw_ave_waiting_time(now)
         unfinished_order = []
         unfinished_order = self.get_unfinished_order()
-        undelivery_time = self.get_total_undelivery_time(now)
+        truck_time = []
+        truck_time = self.get_total_time(now)
+        tw_truck_time = []
+        tw_truck_time=self.get_tw_total_time(now)
 
         self.variables["total_cons"] = history_cons + ing_cons + dis_cons+service_cons
         self.variables["standby_cons"] = standby_cons
@@ -283,7 +355,8 @@ class DynamicPlot:
         self.variables["time_window_ave_queue_time"] = time_window_ave_queue_time
         self.variables["time_window_ave_waiting_time"] = time_window_ave_waiting_time
         self.variables["unfinished_order"] = unfinished_order
-        self.variables["truck_total_undelivery_time"] = undelivery_time
+        self.variables["truck_total_time"] = truck_time
+        self.variables["time_window_truck_total_time"] = tw_truck_time
         
         new_variables = copy.deepcopy(self.variables)
         self.all_var.append(new_variables)

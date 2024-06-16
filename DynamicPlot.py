@@ -301,7 +301,7 @@ class DynamicPlot:
             start_service_time = truck.times["start_service"]
             output_time = truck.times["start_delivery"]
             inpot_time = truck.times["in_depot"]
-            if active_time+self.time_window>=now:
+            if active_time and active_time+self.time_window>=now:
                 if self.truck_condition(truck) == 0:
                     queue_time+=now-active_time
                 elif self.truck_condition(truck) == 1:

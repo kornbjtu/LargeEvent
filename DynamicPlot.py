@@ -47,6 +47,7 @@ class DynamicPlot:
             "time_window_ave_waiting_time":0.0  ,    #带time window的order平均等待时间
             "unfinished_order":[],       #每个depot里积压的订单数，[depot_id, unfinished_order]
             "truck_total_undelivery_time": 0.0  #实时所有车的非运输时长
+            
         }
 
     def clear_variables(self):
@@ -222,10 +223,10 @@ class DynamicPlot:
     def get_unfinished_order(self):
         unfinished_order = []
         for depot in self.depot_list:
-            volume = 0.0
+            volume = 0
             id = depot.id
             for order in depot.order_list:
-                volume+=order.volume
+                volume+=1
             unfinished_order.append((id, volume))
         return unfinished_order
 

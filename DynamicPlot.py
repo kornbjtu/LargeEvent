@@ -224,7 +224,7 @@ class DynamicPlot:
         truck_in_depot = self.get_truck_in_depot()
         order_number = self.get_order_number()
         mile = self.get_mile()
-        emission = (history_cons + ing_cons + dis_cons)*0.268
+        emission = (history_cons + ing_cons + dis_cons) * 0.268
         queue_length = self.get_total_queue_length()
         ave_queue_time = self.get_ave_queue_time()
         service_cons = self.get_service_cons()

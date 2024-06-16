@@ -10,8 +10,6 @@
     },
     "Simulation & KPI-related Settings": {
         "Simulation time": 43200,
-        "Energy consumption per second": 1.11,
-        "Energy consumption per meter": 0.063,
         "Random Seed": 123456,
         "Batch run": false,
         "Run it for": null,

@@ -62,12 +62,13 @@ class Depot(sim.Component, AbstractDepot):
         while True:
             sum_order_volume = sum([order.volume for order in self.order_list])
             if (self.__get_time_wait() >= self.max_wait_time) or (sum_order_volume >= self.max_order):
-
+                
                 truck_instock = self.get_truck_instock()
 
                 # then we send a truck to take the order
                 while len(truck_instock) == 0:
                     # if no truck in stock
+                    truck_instock = self.get_truck_instock()
                     self.hold(1)
 
                 # clear order it takes, we assume it takes the order at first come first serve principle

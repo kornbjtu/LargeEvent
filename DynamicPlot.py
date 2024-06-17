@@ -40,6 +40,7 @@ class DynamicPlot:
             "truck_in_depot":[],     #每个depot里的truck数量
             "carbon_emission":0.0,     #碳排放量
             "order_number": 0 ,      #订单总数
+            "completed_order_num":0,    #已完成订单总数
             "ave_queue_time": 0.0,      #平均排队时间
             "total_queue_length": 0,     #所有depot的排队总长
             "service_cons": 0.0,         #service center产生的能耗
@@ -163,6 +164,13 @@ class DynamicPlot:
     def get_order_number(self):     #订单数量
         order_number = len(self.order_list)
         return order_number
+
+    def get_completed_order_num(self):  #已完成订单总数
+        comp_num = 0
+        for order in self.order_list:
+            if order.is_complete==True:
+                comp_num+=1
+        return comp_num
 
     def get_total_queue_length(self):       #总排队长度
         length = 0
@@ -359,6 +367,7 @@ class DynamicPlot:
         truck_in_depot = []
         truck_in_depot = self.get_truck_in_depot()
         order_number = self.get_order_number()
+        comp_order_num = self.get_completed_order_num()
         mile = self.get_mile()
         queue_length = self.get_total_queue_length()
         ave_queue_time = self.get_ave_queue_time()
@@ -380,6 +389,7 @@ class DynamicPlot:
         self.variables["mean_time"] = now
         self.variables["truck_in_depot"] = truck_in_depot
         self.variables["order_number"] = order_number
+        self.variables["completed_order_num"]=comp_order_num
         self.variables["carbon_emission"] = emission
         self.variables['ave_queue_time'] = ave_queue_time
         self.variables["total_queue_length"] = queue_length

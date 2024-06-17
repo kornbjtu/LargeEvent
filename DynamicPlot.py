@@ -47,7 +47,7 @@ class DynamicPlot:
             "time_window_ave_waiting_time":0.0  ,    #带time window的order平均等待时间
             "unfinished_order":[],       #每个depot里积压的订单数，[depot_id, unfinished_order]
             "truck_total_time": [] , #实时所有车的时长结果, [parking_time, queue_time, service_time, delivery_time]
-            "time_window_truck_total_time":[]      #带time window实时所有车的时长结果, [parking_time, queue_time, service_time, delivery_time]（按active time统计）
+            "time_window_truck_total_time":[]      #带time window实时所有车的时长结果, [parking_time, queue_time, service_time, delivery_time]
         }
 
     def clear_variables(self):
@@ -76,9 +76,10 @@ class DynamicPlot:
             return 1        #means truck is serving
         elif output_time and (inpot_time==None or output_time>inpot_time):
             return 2        #means truck is delivering
-        else:
+        elif active_time==None or (inpot_time>output_time and output_time>start_service_time and start_service_time>=active_time):
             return 3        #means truck is parking and passive
-
+        else:
+            raise Exception("无法判断卡车状态，出现错误。")
 
 
 
@@ -282,7 +283,8 @@ class DynamicPlot:
     def get_tw_total_time(self, now):
         num = self.truck_num()
 
-        total_time = now * num if now<self.time_window else self.time_window*num
+        total_time = now if now<self.time_window else self.time_window
+        addition_time = total_time*num
         delivery_time = 0.0
         parking_time = 0.0
         queue_time = 0.0
@@ -292,26 +294,56 @@ class DynamicPlot:
             start_service_time = times["start_service"]
             output_time = times["start_delivery"]
             inpot_time = times["in_depot"]
-            if active_time+self.time_window>=now:
+            if active_time>now-total_time:
                 delivery_time+=inpot_time-output_time
                 queue_time+=start_service_time-active_time
                 service_time+=output_time-start_service_time
+            elif active_time<now-total_time and start_service_time>now-total_time:
+                queue_time+=start_service_time-(now-total_time)
+                service_time+=output_time-start_service_time
+                delivery_time+=inpot_time-output_time
+            elif start_service_time<now-total_time and output_time>now-total_time:
+                service_time+=output_time-(now-total_time)
+                delivery_time+=inpot_time-output_time
+            elif output_time<now-total_time and inpot_time>now-total_time:
+                delivery_time+=inpot_time-(now-total_time)
         for truck in self.truck_list:
             active_time = truck.times["to_service_center"]
             start_service_time = truck.times["start_service"]
             output_time = truck.times["start_delivery"]
             inpot_time = truck.times["in_depot"]
-            if active_time and active_time+self.time_window>=now:
-                if self.truck_condition(truck) == 0:
+            if self.truck_condition(truck) == 0:
+                if active_time>now-total_time:
                     queue_time+=now-active_time
-                elif self.truck_condition(truck) == 1:
+                elif active_time<now-total_time:
+                    queue_time+=now-(now-total_time)
+            elif self.truck_condition(truck) == 1:
+                if active_time>now-total_time:
                     queue_time += start_service_time-active_time
                     service_time += now-start_service_time
-                elif self.truck_condition(truck) == 2:
+                elif active_time<now-total_time and start_service_time>now-total_time:
+                    queue_time+=start_service_time-(now-total_time)
+                    service_time+=now-start_service_time
+                elif service_time<now-total_time:
+                    service_time+=now-(now-total_time)
+            elif self.truck_condition(truck) == 2:
+                if active_time>now-total_time:
                     queue_time += start_service_time-active_time
                     service_time += output_time-start_service_time
                     delivery_time += now-output_time
-        parking_time = total_time-delivery_time-queue_time-service_time
+                elif active_time<now-total_time and start_service_time>now-total_time:
+                    queue_time+=start_service_time-(now-total_time)
+                    service_time+=output_time-start_service_time
+                    delivery_time+=now-output_time
+                elif service_time<now-total_time and output_time>now-total_time:
+                    service_time+=output_time-(now-total_time)
+                    delivery_time+=now-output_time
+                elif output_time<now-total_time:
+                    delivery_time+=now-(now-total_time)
+
+
+                
+        parking_time = addition_time-delivery_time-queue_time-service_time
         truck_time = [parking_time, queue_time, service_time, delivery_time]
         return truck_time
 

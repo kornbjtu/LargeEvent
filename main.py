@@ -419,7 +419,7 @@ class OrderGen(sim.Component):
                 for node in venue.affected_node:
                     if node in adjusted_dest_dist:
                         adjusted_dest_dist[node] *=  venue.cong_level * 10
-                        # adjusted_dest_dist[node] *=  1
+
 
         total = sum(adjusted_dest_dist.values())
         if total > 0:

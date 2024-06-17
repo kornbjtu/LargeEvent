@@ -373,13 +373,17 @@ class OrderGen(sim.Component):
         self.depot_dist: Dict[Depot, float] = depot_dist
         self.event_gen: LargeEventGen = event_gen
         self.dest_dist: Dict[int, float] = dest_dist
-        self.volume_dist: sim.Distrubtion = volume_dist
+        self.volume_dist: sim.Distribution = volume_dist
 
     def process(self):
         while True:
+            #清尾时间
+            if SIM_TIME - env.now() <= CLEARANCE_TIME:
+                print('Order genereation is over.')
+                break  
+
             # 动态调整目的地分布
-            self.dest_dist = self.adjust_dest_distribution(
-                self.original_dest_dist, self.event_gen)
+            self.dest_dist, adjustment_factor = self.adjust_dest_distribution(self.original_dest_dist, self.event_gen)
 
             # 选择一个目的地
             destination = self._select_from_distribution(self.dest_dist)
@@ -399,26 +403,36 @@ class OrderGen(sim.Component):
 
             depot.accept_order(order)  # 仓库接收订单
 
-            # 订单间隔时间
+            # 调整后的订单间隔时间
+            adjusted_gap = self.adjust_gap_time(self.gap_dist.sample(), adjustment_factor)
 
-            self.hold(GAP_DIST.sample())
+            self.hold(adjusted_gap)
 
     def adjust_dest_distribution(self, dest_dist: Dict[int, float], event_gen: LargeEventGen):
         adjusted_dest_dist = dest_dist.copy()
+        adjustment_factor = 1.0
         current_time = env.now()  # 获取当前时间
 
         for venue in event_gen.venue:
             if venue.start_time <= current_time < venue.start_time + venue.duration:
+                adjustment_factor *= venue.cong_factor
                 for node in venue.affected_node:
                     if node in adjusted_dest_dist:
-                        adjusted_dest_dist[node] *= venue.cong_factor
+                        adjusted_dest_dist[node] *=  venue.cong_level * 10
+                        # adjusted_dest_dist[node] *=  1
 
         total = sum(adjusted_dest_dist.values())
         if total > 0:
             for key in adjusted_dest_dist:
                 adjusted_dest_dist[key] /= total
 
-        return adjusted_dest_dist
+        return adjusted_dest_dist, adjustment_factor
+
+    def adjust_gap_time(self, gap_time, adjustment_factor):
+        if adjustment_factor > 1.0:
+            return gap_time / adjustment_factor
+        else:
+            return gap_time
 
     def _select_from_distribution(self, distribution: Dict[int, float]):
         keys, values = zip(*distribution.items())
@@ -524,7 +538,7 @@ if __name__ == "__main__":
 
     DEPOT_LIST = map.get_type_nodes("Depot")  # all the nodes which are depots
 
-    ORDER_DES_LIST = map.get_type_nodes("Order_dest")
+    ORDER_DES_LIST = map.get_type_nodes("Order_dest") + map.get_type_nodes("Affectted_node")
 
     ##################### DISTRIBUTION ###################
     SERVE_TIME_DIS = sim.Exponential(m2s(params["Distributions Parameters"]["Service time mean"]))
@@ -539,7 +553,7 @@ if __name__ == "__main__":
     DEST_DIST = {}  # table density for order generation's dedstination
 
     for node in ORDER_DES_LIST:
-        DEST_DIST[node.id] = 1.0 / len(ORDER_DES_LIST)  # 每个节点的概率均等
+        DEST_DIST[node] = 1.0 / len(ORDER_DES_LIST)  # 每个节点的概率均等
 
     for depot_node in DEPOT_LIST:
         DEPOT_DIST[depot_node] = 1.0 / len(DEPOT_LIST)
@@ -567,7 +581,7 @@ if __name__ == "__main__":
     CONG_LEVELS = general_params["CongLevel"]
     CONG_FACTORS = {int(key): item for key, item in general_params["CongFactor"].items()}
     STAGE_DURATION = m2s(20)  # 每个阶段持续时间
-
+    CLEARANCE_TIME = h2s(2)  #清尾时间
     ##################### DEPOT parameters ####################
 
     # we assume each depot has exactly only 5 vehicles

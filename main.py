@@ -467,7 +467,7 @@ class Visual(sim.Component):
 
                 # save data
                 # 调用函数并生成CSV文件
-                Window.convert_data_to_csv(self.dp.all_var, 'output.csv')
+                Window.convert_data_to_csv(self.dp.all_var, OUTPUT_FILE)
                 
                 # pop up message box
                 if self.if_dashboard or self.if_vis:
@@ -580,8 +580,8 @@ if __name__ == "__main__":
 
     CONG_LEVELS = general_params["CongLevel"]
     CONG_FACTORS = {int(key): item for key, item in general_params["CongFactor"].items()}
-    STAGE_DURATION = m2s(20)  # 每个阶段持续时间
-    CLEARANCE_TIME = h2s(2)  #清尾时间
+    STAGE_DURATION = m2s(params["Behavioral Settings"]["Stage Duration"])  # 每个阶段持续时间
+    CLEARANCE_TIME = params["Behavioral Settings"]["Clearance time"]  #清尾时间
     ##################### DEPOT parameters ####################
 
     # we assume each depot has exactly only 5 vehicles
@@ -603,6 +603,8 @@ if __name__ == "__main__":
     #################### SIMULATION SETTINGS ####################
 
     SIM_TIME = params["Simulation & KPI-related Settings"]["Simulation time"] # seconds
+
+    OUTPUT_FILE = params["Simulation & KPI-related Settings"]["Output file"]
     #################### METRICS SETTINGS #######################
 
 

@@ -25,7 +25,9 @@
         "Maximum waiting time": 30,
         "Speed on Motorway": 130,
         "Speed on City Street": 50,
-        "Truck parameters": "general_params.json"
+        "Truck parameters": "general_params.json",
+        "Clearance time": 7200,
+        "Stage Duration": 30
     },
     "Visualization Settings": {
         "Real-time dashboard": true,

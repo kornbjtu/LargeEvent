@@ -3,6 +3,7 @@ from tkinter import filedialog, IntVar, BooleanVar, StringVar, DoubleVar, messag
 import json
 import sys
 import csv
+import os
 
 def get_simulation_params():
     params = {}
@@ -53,6 +54,10 @@ def get_simulation_params():
             missing_fields.append("Truck parameters")
         if not avg_time_window.get():
             missing_fields.append("Average time window")
+        if not clearance_time.get():
+            missing_fields.append("Clearance time")
+        if not stage_duration.get():
+            missing_fields.append("Stage Duration")
 
         if missing_fields:
             messagebox.showwarning("Missing Fields", "Please fill the following fields:\n" + "\n".join(missing_fields))
@@ -85,7 +90,9 @@ def get_simulation_params():
                 "Maximum waiting time": max_waiting.get(),
                 "Speed on Motorway": speed_motorway.get(),
                 "Speed on City Street": speed_city_street.get(),
-                "Truck parameters": truck_params_file.get()
+                "Truck parameters": truck_params_file.get(),
+                "Clearance time": clearance_time.get(),
+                "Stage Duration": stage_duration.get()
             },
             "Visualization Settings": {
                 "Real-time dashboard": real_time_dashboard.get(),
@@ -116,6 +123,7 @@ def get_simulation_params():
         venue_params_file.set(defaults["Distributions Parameters"]["Venue-related parameters"])
 
         sim_time.set(defaults["Simulation & KPI-related Settings"]["Simulation time"])
+        
         random_seed.set(defaults["Simulation & KPI-related Settings"]["Random Seed"])
         batch_run.set(defaults["Simulation & KPI-related Settings"]["Batch run"])
         if defaults["Simulation & KPI-related Settings"]["Batch run"]:
@@ -141,6 +149,8 @@ def get_simulation_params():
         real_time_dashboard.set(defaults["Visualization Settings"]["Real-time dashboard"])
         real_time_visualization.set(defaults["Visualization Settings"]["Real-time process visualization"])
         avg_time_window.set(defaults["Visualization Settings"]["Average time window"])
+        clearance_time.set(defaults["Behavioral Settings"]["Clearance time"])
+        stage_duration.set(defaults["Behavioral Settings"]["Stage Duration"])
 
     root = tk.Tk()
     root.title("Simulation Parameters")
@@ -166,7 +176,7 @@ def get_simulation_params():
     duration_sigma = tk.DoubleVar()
     tk.Entry(root, textvariable=duration_sigma, width=10).grid(row=4, column=3, sticky='w')
 
-    tk.Label(root, text="Volume mean (minutes):", anchor="w").grid(row=5, column=0, sticky='w')
+    tk.Label(root, text="Volume mean (m3):", anchor="w").grid(row=5, column=0, sticky='w')
     volume_mean = tk.DoubleVar()
     tk.Entry(root, textvariable=volume_mean, width=10).grid(row=5, column=1, sticky='w')
     tk.Label(root, text="sigma:", anchor="w").grid(row=5, column=2, sticky='w')
@@ -222,7 +232,7 @@ def get_simulation_params():
     tk.Entry(root, textvariable=map_file).grid(row=19, column=1, sticky='w')
     tk.Button(root, text="Browse", command=lambda: map_file.set(filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx")]))).grid(row=19, column=2, columnspan=2, sticky='w')
 
-    tk.Label(root, text="Start delivery threshold (volume):", anchor="w").grid(row=20, column=0, sticky='w')
+    tk.Label(root, text="Start delivery threshold (m3):", anchor="w").grid(row=20, column=0, sticky='w')
     start_threshold = tk.DoubleVar()
     tk.Entry(root, textvariable=start_threshold).grid(row=20, column=1, columnspan=3, sticky='w')
 
@@ -243,21 +253,29 @@ def get_simulation_params():
     tk.Entry(root, textvariable=truck_params_file).grid(row=24, column=1, sticky='w')
     tk.Button(root, text="Browse", command=lambda: truck_params_file.set(filedialog.askopenfilename())).grid(row=24, column=2, columnspan=2, sticky='w')
 
+    tk.Label(root, text="Clearance time (seconds):", anchor="w").grid(row=25, column=0, sticky='w')
+    clearance_time = tk.DoubleVar()
+    tk.Entry(root, textvariable=clearance_time).grid(row=25, column=1, columnspan=3, sticky='w')
+
+    tk.Label(root, text="Stage Duration (minutes):", anchor="w").grid(row=26, column=0, sticky='w')
+    stage_duration = tk.DoubleVar()
+    tk.Entry(root, textvariable=stage_duration).grid(row=26, column=1, columnspan=3, sticky='w')
+
     # Visualization Settings
-    create_section("Visualization Settings", 25)
+    create_section("Visualization Settings", 27)
     real_time_dashboard = BooleanVar()
-    tk.Checkbutton(root, text="Real-time dashboard", variable=real_time_dashboard).grid(row=26, column=0, sticky='w')
+    tk.Checkbutton(root, text="Real-time dashboard", variable=real_time_dashboard).grid(row=28, column=0, sticky='w')
 
     real_time_visualization = BooleanVar()
-    tk.Checkbutton(root, text="Real-time process visualization", variable=real_time_visualization).grid(row=26, column=1, sticky='w')
+    tk.Checkbutton(root, text="Real-time process visualization", variable=real_time_visualization).grid(row=28, column=1, sticky='w')
 
-    tk.Label(root, text="Average time window (seconds):", anchor="w").grid(row=27, column=0, sticky='w')
+    tk.Label(root, text="Average time window (seconds):", anchor="w").grid(row=29, column=0, sticky='w')
     avg_time_window = tk.DoubleVar()
-    tk.Entry(root, textvariable=avg_time_window).grid(row=27, column=1, columnspan=3, sticky='w')
+    tk.Entry(root, textvariable=avg_time_window).grid(row=29, column=1, columnspan=3, sticky='w')
 
     # Buttons
     button_frame = tk.Frame(root)
-    button_frame.grid(row=28, column=0, columnspan=4)
+    button_frame.grid(row=30, column=0, columnspan=4)
     tk.Button(button_frame, text="Submit", command=submit).grid(row=0, column=0, padx=5)
     tk.Button(button_frame, text="Load Defaults", command=load_defaults).grid(row=0, column=1, padx=5)
 
@@ -289,7 +307,7 @@ def convert_data_to_csv(data, output_filename):
         'service_cons', 'time_window_ave_queue_time', 'time_window_ave_waiting_time',
         'truck_total_time_parking', 'truck_total_time_queue', 'truck_total_time_service', 'truck_total_time_delivery',
         'time_window_truck_total_time_parking', 'time_window_truck_total_time_queue', 'time_window_truck_total_time_service', 
-        'time_window_truck_total_time_delivery'
+        'time_window_truck_total_time_delivery', 'completed_order_num'
     ]
                   
     # 将'unfinished_order'字段处理成单独的字段
@@ -320,16 +338,25 @@ def convert_data_to_csv(data, output_filename):
             for new_key in new_keys:
                 row[new_key] = 0
 
-    # 写入CSV文件
-    with open(output_filename, 'w', newline='') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader()
-        
-        for row in data:
-            extract_tuple('truck_in_depot', row, ['truck_in_depot_0', 'truck_in_depot_1', 'truck_in_depot_2', 'truck_in_depot_3'])
-            extract_tuple('unfinished_order', row, ['unfinished_order_0', 'unfinished_order_1', 'unfinished_order_2', 'unfinished_order_3'])
-            extract('truck_total_time', row, ['truck_total_time_parking', 'truck_total_time_queue', 'truck_total_time_service', 'truck_total_time_delivery'])
-            extract('time_window_truck_total_time', row, ['time_window_truck_total_time_parking', 'time_window_truck_total_time_queue', 'time_window_truck_total_time_service', 'time_window_truck_total_time_delivery'])
+    # 确保输出目录存在
+    output_dir = os.path.dirname(output_filename)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
-            writer.writerow(row)
+    # 写入CSV文件
+    try:
+        with open(output_filename, 'w', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+
+            for row in data:
+                extract_tuple('truck_in_depot', row, ['truck_in_depot_0', 'truck_in_depot_1', 'truck_in_depot_2', 'truck_in_depot_3'])
+                extract_tuple('unfinished_order', row, ['unfinished_order_0', 'unfinished_order_1', 'unfinished_order_2', 'unfinished_order_3'])
+                extract('truck_total_time', row, ['truck_total_time_parking', 'truck_total_time_queue', 'truck_total_time_service', 'truck_total_time_delivery'])
+                extract('time_window_truck_total_time', row, ['time_window_truck_total_time_parking', 'time_window_truck_total_time_queue', 'time_window_truck_total_time_service', 'time_window_truck_total_time_delivery'])
+
+                writer.writerow(row)
+    except Exception as e:
+        print(f"An error occurred while writing the CSV file: {e}")
+
 

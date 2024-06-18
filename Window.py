@@ -32,13 +32,13 @@ def get_simulation_params():
             missing_fields.append("Random Seed")
         if not output_file.get():
             missing_fields.append("Output file")
-        if not ritsch_trucks.get():
+        if ritsch_trucks.get() is None:
             missing_fields.append("Number of Ritsch Truck")
-        if not dongfeng_trucks.get():
+        if dongfeng_trucks.get() is None:
             missing_fields.append("Number of Dongfeng Truck")
-        if not isuzu_trucks.get():
+        if isuzu_trucks.get() is None:
             missing_fields.append("Number of Isuzu Truck")
-        if not volvo_trucks.get():
+        if volvo_trucks.get() is None:
             missing_fields.append("Number of Volvo Truck")
         if not map_file.get():
             missing_fields.append("Map")

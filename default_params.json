@@ -23,8 +23,8 @@
         "Map": "node_matrix.xlsx",
         "Start delivery threshold": 20,
         "Maximum waiting time": 30,
-        "Speed on Motorway": 130,
-        "Speed on City Street": 50,
+        "Speed on Motorway": 95,
+        "Speed on City Street": 35,
         "Truck parameters": "general_params.json",
         "Clearance time": 7200,
         "Stage Duration": 30

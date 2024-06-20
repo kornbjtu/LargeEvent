@@ -9,13 +9,14 @@ class Plotter:
     def __init__(self, truck_list, depot_list, venue_list, map, order_list):
         self.canvas = np.zeros((700, 700, 3), dtype=np.uint8)
         self.fps = 200
-        self.truck_color = ((255, 0, 255))  # truck: purple
+        self.truck_color = ((0, 215, 255))  # truck: gold
         self.depot_color = ((0, 255, 255))  # depot: yellow
         # self.venue_color = ((255, 0, 0))        #event venue: blue
-        self.ordergenerator_color = ((0, 255, 0))  # order generator: green
-        self.generate_order_color = ((153, 255, 153))
-        self.complete_order_color = ((0, 120, 0))
-
+        self.ordergenerator_color = ((144, 238, 144))  # order generator: green
+        self.generate_order_color = ((255, 255, 150))       
+        self.complete_order_color = ((185, 218, 255))       
+        self.highway_color = ((255, 255, 224))
+        self.depot_volume = ((185, 218, 255))
 
         self.road_color = [
             (255, 255, 255), (204, 204, 255), (153, 153,
@@ -98,16 +99,16 @@ class Plotter:
             volume = int(v)
             if depot.id == 0:
                  cv2.putText(self.canvas, str(volume), self.trans(
-                    depot.node.x-5, depot.node.y+5), self.font, 0.5, (0, 0, 255), 1)
+                    depot.node.x-5, depot.node.y+5), self.font, 0.5, self.depot_volume, 1)
             elif depot.id == 1:
                 cv2.putText(self.canvas, str(volume), self.trans(
-                    depot.node.x-5, depot.node.y), self.font, 0.5, (0, 0, 255), 1)
+                    depot.node.x-5, depot.node.y), self.font, 0.5, self.depot_volume, 1)
             elif depot.id == 2:
                 cv2.putText(self.canvas, str(volume), self.trans(
-                    depot.node.x+5, depot.node.y), self.font, 0.5, (0, 0, 255), 1)
+                    depot.node.x+5, depot.node.y), self.font, 0.5, self.depot_volume, 1)
             else:
                 cv2.putText(self.canvas, str(volume), self.trans(
-                    depot.node.x, depot.node.y-5), self.font, 0.5, (0, 0, 255), 1)
+                    depot.node.x, depot.node.y-5), self.font, 0.5, self.depot_volume, 1)
             for i in range(depot.service_center.serve_queue.length()):
                 # 计算每个长方形的位置
                 position_x = depot.node.x-5 + (self.rect_width + self.gap) * i
@@ -180,18 +181,20 @@ class Plotter:
 
 
             for order in self.all_orders:
-                if order.destination == ordergenerator.id:
-                    if abs(order.generation_time - now) <= 12:
+                # print(order.destination)
+                if order.destination.id == ordergenerator.id:
+                    # print(1)
+                    if order.is_complete==False and abs(order.generation_time - now) <= 12:
                         state['color'] = self.generate_order_color
-                        state['reset_time'] = now + 30
+                        state['reset_time'] = now + 20
                         state['display_text'] = 'green'
                         break
                     elif order.is_complete == True and abs(order.complete_time - now) <= 12:
                         state['color'] = self.complete_order_color
-                        state['reset_time'] = now + 30
+                        state['reset_time'] = now + 20
                         state['display_text'] = 'red'
                         break
-
+            # print(f"OrderGenerator ID: {ordergenerator.id}, Display Text: {state['display_text']}")
             # 绘制 ordergenerator
             cv2.circle(self.canvas, self.trans(ordergenerator.x, ordergenerator.y),
                        self.ordergenerator_radius, state['color'], -1)
@@ -200,10 +203,10 @@ class Plotter:
             if state['display_text']:
                 if state['display_text'] == 'green':
                     cv2.putText(self.canvas, 'New', self.trans(ordergenerator.x + 2, ordergenerator.y + 2),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, state['color'], 1, cv2.LINE_AA)
                 elif state['display_text'] == 'red':
                     cv2.putText(self.canvas, 'Arvl', self.trans(ordergenerator.x + 2, ordergenerator.y + 2),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, state['color'], 1, cv2.LINE_AA)
 
            
     def animate_roads(self):
@@ -246,7 +249,7 @@ class Plotter:
                 else:
                     # highways
                     cv2.line(self.canvas, self.trans(road.node1.x, road.node1.y), self.trans(
-                        road.node2.x, road.node2.y), self.road_color[0], self.road_high_width)
+                        road.node2.x, road.node2.y), self.highway_color, self.road_high_width)
     # def animate_nodes(self):
     #     for node_id, node in all_nodes.items():
     #         # 获取节点的坐标
@@ -264,5 +267,5 @@ class Plotter:
 
 
         self.animate_trucks()
-        # self.animate_midpoints()
+        
         self.update_canvas()

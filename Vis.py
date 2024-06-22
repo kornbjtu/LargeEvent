@@ -7,19 +7,23 @@ from DONTUSELargeEvent import *
 
 class Plotter:
     def __init__(self, truck_list, depot_list, venue_list, map, order_list):
-        self.canvas = np.zeros((700, 700, 3), dtype=np.uint8)
+        self.canvas = np.zeros((700, 700, 3), dtype=np.uint8) 
+        self.bg_color = ((255, 255, 255))       #Back Ground color is white 
+        self.canvas[:, :] = self.bg_color
         self.fps = 200
-        self.truck_color = ((0, 215, 255))  # truck: gold
-        self.depot_color = ((0, 255, 255))  # depot: yellow
+        self.truck_color = ((0, 140, 200))  # truck: gold
+        self.depot_color = ((0, 200, 200))  # depot: yellow
         # self.venue_color = ((255, 0, 0))        #event venue: blue
-        self.ordergenerator_color = ((144, 238, 144))  # order generator: green
-        self.generate_order_color = ((255, 255, 150))       
-        self.complete_order_color = ((185, 218, 255))       
-        self.highway_color = ((255, 255, 224))
-        self.depot_volume = ((185, 218, 255))
+        self.ordergenerator_color = ((0, 128, 0))  # order generator: green
+        self.generate_order_color = ((200, 200, 0))       
+        self.complete_order_color = ((0, 0, 128))       
+        self.highway_color = ((64, 64, 64))
+        self.depot_volume = ((0, 0, 139))
+        self.black = ((0, 0, 0))
+        
 
         self.road_color = [
-            (255, 255, 255), (204, 204, 255), (153, 153,
+            (0, 0, 0), (204, 204, 255), (153, 153,
                                                255), (102, 102, 255), (51, 51, 255), (0, 0, 255)
         ]
         self.venue_color = [
@@ -58,6 +62,7 @@ class Plotter:
         ###########################################################################################
     def _clear_canvas(self):
         self.canvas = np.zeros((700, 700, 3), dtype="uint8")
+        self.canvas[:, :] = self.bg_color
 
     def update_canvas(self):
         cv2.imshow('Canvas', self.canvas)
@@ -87,12 +92,12 @@ class Plotter:
 
     def animate_meantime(self, now):
         cv2.putText(self.canvas, str(int(now)), self.trans(-60, 60),
-                    self.font, 0.7, (255, 255, 255), 1)
+                    self.font, 0.7, self.black, 2)
 
     def animate_depots(self):
         for depot in self.all_depots:
             cv2.putText(self.canvas, str(depot.id+1), self.trans(
-                    depot.node.x+5, depot.node.y-5), self.font, 0.5, (0, 255, 255), 1)
+                    depot.node.x+5, depot.node.y-5), self.font, 0.5, self.black, 2)
             v = 0.0
             for order in depot.order_list:
                 v+=order.volume
@@ -114,13 +119,13 @@ class Plotter:
                 position_x = depot.node.x-5 + (self.rect_width + self.gap) * i
                 # 绘制长方形
                 cv2.rectangle(self.canvas, self.trans(position_x, depot.node.y-5), self.trans(
-                    position_x + self.rect_width, depot.node.y-5 + self.rect_height), (255, 255, 255), -1)
+                    position_x + self.rect_width, depot.node.y-5 + self.rect_height), self.black, -1)
             for j in range(depot.service_center.serve_queue.length()):
                 # 计算每个长方形的位置
                 position_x = depot.node.x-5 + (self.rect_width + self.gap) * i
                 # 绘制长方形
                 cv2.rectangle(self.canvas, self.trans(position_x, depot.node.y-5), self.trans(
-                    position_x + self.rect_width, depot.node.y-5 + self.rect_height), (255, 255, 255), -1)
+                    position_x + self.rect_width, depot.node.y-5 + self.rect_height), self.black, -1)
             cv2.circle(self.canvas, self.trans(
                 depot.node.x, depot.node.y), self.depot_radius, self.depot_color, -1)
 
@@ -137,32 +142,32 @@ class Plotter:
                 cv2.circle(self.canvas, self.trans(
                     venue.node.x, venue.node.y), self.venue_radius, self.venue_color[0], -1)
                 cv2.putText(self.canvas, '0', self.trans(
-                    venue.node.x-5, venue.node.y-5), self.font, 0.5, (255, 255, 255), 1)
+                    venue.node.x-5, venue.node.y-5), self.font, 0.5, self.black, 1)
             elif venue.cong_level == 1:
                 cv2.circle(self.canvas, self.trans(
                     venue.node.x, venue.node.y), self.venue_radius, self.venue_color[1], -1)
                 cv2.putText(self.canvas, '1', self.trans(
-                    venue.node.x-5, venue.node.y-5), self.font, 0.5, (255, 255, 255), 1)
+                    venue.node.x-5, venue.node.y-5), self.font, 0.5, self.black, 1)
             elif venue.cong_level == 2:
                 cv2.circle(self.canvas, self.trans(
                     venue.node.x, venue.node.y), self.venue_radius, self.venue_color[2], -1)
                 cv2.putText(self.canvas, '2', self.trans(
-                    venue.node.x-5, venue.node.y-5), self.font, 0.5, (255, 255, 255), 1)
+                    venue.node.x-5, venue.node.y-5), self.font, 0.5, self.black, 1)
             elif venue.cong_level == 3:
                 cv2.circle(self.canvas, self.trans(
                     venue.node.x, venue.node.y), self.venue_radius, self.venue_color[3], -1)
                 cv2.putText(self.canvas, '3', self.trans(
-                    venue.node.x-5, venue.node.y-5), self.font, 0.5, (255, 255, 255), 1)
+                    venue.node.x-5, venue.node.y-5), self.font, 0.5, self.black, 1)
             elif venue.cong_level == 4:
                 cv2.circle(self.canvas, self.trans(
                     venue.node.x, venue.node.y), self.venue_radius, self.venue_color[4], -1)
                 cv2.putText(self.canvas, '4', self.trans(
-                    venue.node.x-5, venue.node.y-5), self.font, 0.5, (255, 255, 255), 1)
+                    venue.node.x-5, venue.node.y-5), self.font, 0.5, self.black, 1)
             elif venue.cong_level == 5:
                 cv2.circle(self.canvas, self.trans(
                     venue.node.x, venue.node.y), self.venue_radius, self.venue_color[5], -1)
                 cv2.putText(self.canvas, '5', self.trans(
-                    venue.node.x-5, venue.node.y-5), self.font, 0.5, (255, 255, 255), 1)
+                    venue.node.x-5, venue.node.y-5), self.font, 0.5, self.black, 1)
             else:
                 raise "venue color error"
 

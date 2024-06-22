@@ -11,6 +11,7 @@
     "Simulation & KPI-related Settings": {
         "Simulation time": 43200,
         "Random Seed": 123456,
+        "Seed Number": 20,
         "Batch run": false,
         "Run it for": null,
         "Output file": "output/output.csv"
@@ -30,8 +31,10 @@
         "Stage Duration": 30
     },
     "Visualization Settings": {
-        "Real-time dashboard": true,
-        "Real-time process visualization": true,
+        "Real-time dashboard": false,
+        "Real-time process visualization": false,
         "Average time window": 3600
     }
+
+    
 }

@@ -621,12 +621,18 @@ if __name__ == "__main__":
         
         # 生成随机种子并运行仿真
         seeds = np.random.randint(0, 10000, seed_number)
-        for seed in seeds:
-            print(f"Running simulation with seed {seed} with changed parameters: {test_params}")
+   
+        for seed_index, seed in enumerate(seeds):
+            output_file_name = f"output/output_scenario_{i+1}_seed_{seed_index+1}.csv"
+            print(f"Running simulation with seed {seed} and parameters: {test_params}")
             params = merge_params(default_params.copy(), test_params)
+            params['Simulation & KPI-related Settings']["Output file"] = output_file_name
             params['Simulation & KPI-related Settings']["Random Seed"] = int(seed)
-        
-     
+            # print(f"- Output file set to {output_file_name}")
+
+
+
+
 
  ########################################     主程序   ############################################################       
  # 

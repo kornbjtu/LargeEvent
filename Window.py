@@ -307,7 +307,7 @@ def convert_data_to_csv(data, output_filename):
         'service_cons', 'time_window_ave_queue_time', 'time_window_ave_waiting_time',
         'truck_total_time_parking', 'truck_total_time_queue', 'truck_total_time_service', 'truck_total_time_delivery',
         'time_window_truck_total_time_parking', 'time_window_truck_total_time_queue', 'time_window_truck_total_time_service', 
-        'time_window_truck_total_time_delivery', 'completed_order_num'
+        'time_window_truck_total_time_delivery', 'completed_order_num', 'unfinished_volume_0', 'unfinished_volume_1', 'unfinished_volume_2', 'unfinished_volume_3'
     ]
                   
     # 将'unfinished_order'字段处理成单独的字段
@@ -338,6 +338,7 @@ def convert_data_to_csv(data, output_filename):
             for new_key in new_keys:
                 row[new_key] = 0
 
+
     # 确保输出目录存在
     output_dir = os.path.dirname(output_filename)
     if not os.path.exists(output_dir):
@@ -352,6 +353,7 @@ def convert_data_to_csv(data, output_filename):
             for row in data:
                 extract_tuple('truck_in_depot', row, ['truck_in_depot_0', 'truck_in_depot_1', 'truck_in_depot_2', 'truck_in_depot_3'])
                 extract_tuple('unfinished_order', row, ['unfinished_order_0', 'unfinished_order_1', 'unfinished_order_2', 'unfinished_order_3'])
+                extract_tuple('unfinished_volume', row, ['unfinished_volume_0', 'unfinished_volume_1', 'unfinished_volume_2', 'unfinished_volume_3'])
                 extract('truck_total_time', row, ['truck_total_time_parking', 'truck_total_time_queue', 'truck_total_time_service', 'truck_total_time_delivery'])
                 extract('time_window_truck_total_time', row, ['time_window_truck_total_time_parking', 'time_window_truck_total_time_queue', 'time_window_truck_total_time_service', 'time_window_truck_total_time_delivery'])
 

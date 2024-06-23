@@ -60,7 +60,7 @@ class Road:
         assert from_node == self.node1 or from_node == self.node2
         to_node = self.get_another_node(from_node)
 
-        distance_elapse = time * self.velocity_limit
+        distance_elapse = time * self.velocity_limit # fix bug here
 
         from_x, from_y = from_node.get_loc()
         to_x, to_y = to_node.get_loc()

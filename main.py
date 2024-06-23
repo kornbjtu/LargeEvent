@@ -395,7 +395,7 @@ class OrderGen(sim.Component):
             generation_time = env.now()
 
             # generate volume
-            volume = np.abs(self.volume_dist.sample())
+            volume = self.volume_dist.bounded_sample(lowerbound=0)
 
             # 生成订单
             order = Order(generation_time=generation_time, complete_time=None, destination=destination, volume=volume, depot=depot, is_complete=False)
@@ -569,7 +569,7 @@ if __name__ == "__main__":
     for venue in general_params["venues"]:
         VENUES.append(Venue(node=map.node(venue["Node"]), 
                             start_time=h2s(venue["StartTime"]), 
-                            duration=np.abs(DURATION_DIST.sample() + venue["Duration"]), # take the absolute value making sure its larger than 0
+                            duration=DURATION_DIST.bounded_sample(lowerbound=-venue["Duration"]) + venue["Duration"], # take the absolute value making sure its larger than 0
                             event_scale=venue["Scale"], 
                             influence_road=[map.get_road(venue["Node"], x) for x in venue["AffectedNodes"]], 
                             affected_node=[map.node(x) for x in venue["AffectedNodes"]]))

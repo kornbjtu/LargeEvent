@@ -5,4 +5,7 @@ __pycache__/
 *.log
 *.tmp
 *.icloud
+output/
+graph_output/
 output.csv
+*_guoheng.*

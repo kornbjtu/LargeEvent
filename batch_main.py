@@ -628,7 +628,7 @@ if __name__ == "__main__":
             params = merge_params(default_params.copy(), test_params)
             params['Simulation & KPI-related Settings']["Output file"] = output_file_name
             params['Simulation & KPI-related Settings']["Random Seed"] = int(seed)
-            # print(f"- Output file set to {output_file_name}")
+            print(f"- Output file set to {output_file_name}")
 
 
 

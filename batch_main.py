@@ -578,7 +578,7 @@ if __name__ == "__main__":
     default_params = load_params(json_files)
 
 
-    excel_file_path = "scenarios.xlsx"
+    excel_file_path = "scenarios_guoheng.xlsx"
     excel_params = read_excel_params(excel_file_path)
 
         # 获取随机种子数量
@@ -602,6 +602,7 @@ if __name__ == "__main__":
         if parameter == 'Simulation & KPI-related Settings' and 'Seed Number' in values:
             continue  # 跳过已经处理的随机种子参数         
         for key, value_set in values.items():
+            value_set = value_set if isinstance(value_set, list) else [value_set]
             combined_parameter = f"{parameter}.{key}"  # 将parameter和key结合成新的层级结构
             keys_values[combined_parameter] = value_set
             max_length = max(max_length, len(value_set))

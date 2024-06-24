@@ -47,6 +47,7 @@ class DynamicPlot:
             "time_window_ave_queue_time":0.0  ,    #带time window的平均排队时间（按完成排队时间统计）
             "time_window_ave_waiting_time":0.0  ,    #带time window的order平均等待时间
             "unfinished_order":[],       #每个depot里积压的订单数，[depot_id, unfinished_order]
+            "unfinished_volume":[],     #每个depot里积压的volume总数， [depot_id, unfinished_order_volume]
             "truck_total_time": [] , #实时所有车的时长结果, [parking_time, queue_time, service_time, delivery_time]
             "time_window_truck_total_time":[]      #带time window实时所有车的时长结果, [parking_time, queue_time, service_time, delivery_time]
         }
@@ -253,6 +254,16 @@ class DynamicPlot:
                 volume+=1
             unfinished_order.append((id, volume))
         return unfinished_order
+    
+    def get_unfinished_volume(self):
+        unfinished_volume = []
+        for depot in self.depot_list:
+            volume = 0
+            id = depot.id
+            for order in depot.order_list:
+                volume+=order.volume
+            unfinished_volume.append((id, volume))
+        return unfinished_volume
 
     def get_total_time(self, now):
         num = self.truck_num()
@@ -377,6 +388,8 @@ class DynamicPlot:
         time_window_ave_waiting_time = self.get_tw_ave_waiting_time(now)
         unfinished_order = []
         unfinished_order = self.get_unfinished_order()
+        unfinished_volume = []
+        unfinished_volume = self.get_unfinished_volume()
         truck_time = []
         truck_time = self.get_total_time(now)
         tw_truck_time = []
@@ -397,6 +410,7 @@ class DynamicPlot:
         self.variables["time_window_ave_queue_time"] = time_window_ave_queue_time
         self.variables["time_window_ave_waiting_time"] = time_window_ave_waiting_time
         self.variables["unfinished_order"] = unfinished_order
+        self.variables["unfinished_volume"] = unfinished_volume
         self.variables["truck_total_time"] = truck_time
         self.variables["time_window_truck_total_time"] = tw_truck_time
         
